@@ -358,9 +358,6 @@ export default function Dashboard({ user: initialUser, role, userId, onLogout })
             <button onClick={() => setIsSidebarOpen(true)} className="lg:hidden p-2 rounded-lg bg-bg-card border border-brand-border text-brand-gold">
               <LayoutDashboard size={20} />
             </button>
-            <div className="hidden md:block w-[220px] lg:w-[280px]">
-              <GlobalSearch onNavigate={setActiveTab} />
-            </div>
             <div className="hidden sm:block">
               <h2 className="font-serif text-sm md:text-xl font-semibold text-txt-main capitalize tracking-wide">
                 {activeTab === 'dashboard' ? 'Intelligence Overview' :
@@ -380,6 +377,9 @@ export default function Dashboard({ user: initialUser, role, userId, onLogout })
           </div>
           
           <div className="flex items-center gap-2 md:gap-4">
+            <div className="hidden md:block w-[180px] lg:w-[260px] mr-1">
+              <GlobalSearch onNavigate={setActiveTab} />
+            </div>
             <button 
               onClick={toggleTheme}
               className="p-2 rounded-xl bg-bg-card border border-brand-border text-brand-gold hover:bg-brand-gold hover:text-white transition-all shadow-sm"
