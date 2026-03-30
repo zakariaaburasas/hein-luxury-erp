@@ -99,103 +99,165 @@ export default function InventoryView({ searchQuery }) {
           {searchQuery ? `No results found for "${searchQuery}"` : "No products registered. Add your first SKU above."}
         </div>
       ) : (
-        <section className="overflow-x-auto rounded-[1.25rem] border border-brand-border bg-brand-gray shadow-xl">
-          <table className="w-full text-left text-sm">
-            <thead className="bg-black/40 text-xs uppercase tracking-widest text-brand-gold">
-              <tr>
-                <th className="border-b border-brand-border px-5 py-4">Image</th>
-                <th className="border-b border-brand-border px-5 py-4">SKU Code</th>
-                <th className="border-b border-brand-border px-5 py-4">Product Name</th>
-                <th className="border-b border-brand-border px-5 py-4">Collection</th>
-                <th className="border-b border-brand-border px-5 py-4">Colorway</th>
-                <th className="border-b border-brand-border px-5 py-4">Sizes</th>
-                <th className="border-b border-brand-border px-5 py-4">Category</th>
-                <th className="border-b border-brand-border px-5 py-4">Stock</th>
-                <th className="border-b border-brand-border px-5 py-4">Cost</th>
-                <th className="border-b border-brand-border px-5 py-4">Retail</th>
-                <th className="border-b border-brand-border px-5 py-4 text-center">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-brand-border">
-              {filteredProducts.map(p => {
-                const isLow = p.stockLevel <= p.min_stock_level;
-                const isCritical = p.stockLevel <= Math.floor(p.min_stock_level / 2);
-                return (
-                  <tr
-                    key={p._id}
-                    className={`transition-colors ${
-                      isCritical ? 'bg-red-900/5 hover:bg-red-900/10' :
-                      isLow ? 'bg-amber-900/5 hover:bg-amber-900/10' :
-                      'hover:bg-white/5'
-                    }`}
-                  >
-                    <td className="px-5 py-4">
+        <>
+          {/* Mobile Card View */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 lg:hidden">
+            {filteredProducts.map(p => {
+              const isLow = p.stockLevel <= p.min_stock_level;
+              const isCritical = p.stockLevel <= Math.floor(p.min_stock_level / 2);
+              return (
+                <div key={p._id} className={`rounded-[1.25rem] border p-5 bg-brand-gray transition-all ${
+                  isCritical ? 'border-red-500/50' : isLow ? 'border-amber-500/50' : 'border-brand-border'
+                }`}>
+                  <div className="flex gap-4 mb-4">
+                    <div className="w-16 h-16 shrink-0 rounded-lg bg-black overflow-hidden border border-brand-border">
                       {p.image_url ? (
-                        <div className="w-12 h-12 rounded bg-black flex items-center justify-center overflow-hidden border border-brand-border shadow-md">
-                          <img src={p.image_url} alt={p.name} className="w-full h-full object-cover" />
-                        </div>
+                        <img src={p.image_url} alt={p.name} className="w-full h-full object-cover" />
                       ) : (
-                        <div className="w-12 h-12 rounded bg-brand-black border border-brand-border/50 border-dashed flex items-center justify-center text-gray-700 font-mono text-[0.55rem] tracking-widest text-center shadow-inner">
-                          N/A
+                        <div className="w-full h-full flex items-center justify-center text-[10px] text-gray-600">N/A</div>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="font-mono text-[10px] font-bold text-brand-gold truncate">{p.sku_code}</span>
+                        {isLow && <AlertTriangle size={10} className={isCritical ? 'text-red-400' : 'text-amber-400'} />}
+                      </div>
+                      <h4 className="text-sm font-semibold text-white truncate">{p.name}</h4>
+                      <p className="text-[10px] text-gray-500 uppercase tracking-widest mt-1">{p.category} · {p.colorway}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-3 pb-4 border-b border-brand-border/50">
+                    <div>
+                      <p className="text-[10px] text-gray-500 uppercase tracking-widest mb-0.5">Stock</p>
+                      <p className={`text-sm font-bold ${isLow ? (isCritical ? 'text-red-400' : 'text-amber-400') : 'text-white'}`}>
+                        {p.stockLevel} units
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-[10px] text-gray-500 uppercase tracking-widest mb-0.5">Retail Price</p>
+                      <p className="text-sm font-serif font-bold text-brand-gold">${p.selling_price || p.salePrice || '0'}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-between items-center mt-4">
+                    <div className="text-[10px] text-gray-500 font-mono">
+                      {p.season_collection}
+                    </div>
+                    <div className="flex gap-2">
+                       <button onClick={() => setEditingProduct(p)} className="p-2 bg-brand-black border border-brand-border rounded-lg text-gray-400 hover:text-brand-gold">
+                         <Edit3 size={14} />
+                       </button>
+                       <button onClick={() => handleDeleteProduct(p._id)} className="p-2 bg-brand-black border border-brand-border rounded-lg text-gray-400 hover:text-red-400">
+                         <Trash2 size={14} />
+                       </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Desktop Table View */}
+          <section className="hidden lg:block overflow-x-auto rounded-[1.25rem] border border-brand-border bg-brand-gray shadow-xl">
+            <table className="w-full text-left text-sm">
+              <thead className="bg-black/40 text-xs uppercase tracking-widest text-brand-gold">
+                <tr>
+                  <th className="border-b border-brand-border px-5 py-4">Image</th>
+                  <th className="border-b border-brand-border px-5 py-4">SKU Code</th>
+                  <th className="border-b border-brand-border px-5 py-4">Product Name</th>
+                  <th className="border-b border-brand-border px-5 py-4">Collection</th>
+                  <th className="border-b border-brand-border px-5 py-4">Colorway</th>
+                  <th className="border-b border-brand-border px-5 py-4">Sizes</th>
+                  <th className="border-b border-brand-border px-5 py-4">Category</th>
+                  <th className="border-b border-brand-border px-5 py-4">Stock</th>
+                  <th className="border-b border-brand-border px-5 py-4">Cost</th>
+                  <th className="border-b border-brand-border px-5 py-4">Retail</th>
+                  <th className="border-b border-brand-border px-5 py-4 text-center">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-brand-border">
+                {filteredProducts.map(p => {
+                  const isLow = p.stockLevel <= p.min_stock_level;
+                  const isCritical = p.stockLevel <= Math.floor(p.min_stock_level / 2);
+                  return (
+                    <tr
+                      key={p._id}
+                      className={`transition-colors ${
+                        isCritical ? 'bg-red-900/5 hover:bg-red-900/10' :
+                        isLow ? 'bg-amber-900/5 hover:bg-amber-900/10' :
+                        'hover:bg-white/5'
+                      }`}
+                    >
+                      <td className="px-5 py-4">
+                        {p.image_url ? (
+                          <div className="w-12 h-12 rounded bg-black flex items-center justify-center overflow-hidden border border-brand-border shadow-md">
+                            <img src={p.image_url} alt={p.name} className="w-full h-full object-cover" />
+                          </div>
+                        ) : (
+                          <div className="w-12 h-12 rounded bg-brand-black border border-brand-border/50 border-dashed flex items-center justify-center text-gray-700 font-mono text-[0.55rem] tracking-widest text-center shadow-inner">
+                            N/A
+                          </div>
+                        )}
+                      </td>
+                      <td className="px-5 py-4">
+                        <div className="flex items-center gap-2">
+                          {isLow && <AlertTriangle size={12} className={isCritical ? 'text-red-400' : 'text-amber-400'} />}
+                          <span className={`font-mono text-xs font-bold ${isLow ? (isCritical ? 'text-red-400' : 'text-amber-400') : 'text-brand-gold'}`}>
+                            {p.sku_code || '—'}
+                          </span>
                         </div>
-                      )}
-                    </td>
-                    <td className="px-5 py-4">
-                      <div className="flex items-center gap-2">
-                        {isLow && <AlertTriangle size={12} className={isCritical ? 'text-red-400' : 'text-amber-400'} />}
-                        <span className={`font-mono text-xs font-bold ${isLow ? (isCritical ? 'text-red-400' : 'text-amber-400') : 'text-brand-gold'}`}>
-                          {p.sku_code || '—'}
+                      </td>
+                      <td className="px-5 py-4 font-medium text-white">{p.name}</td>
+                      <td className="px-5 py-4 text-xs text-gray-400">{p.season_collection || '—'}</td>
+                      <td className="px-5 py-4 text-xs text-gray-400">{p.colorway || '—'}</td>
+                      <td className="px-5 py-4 text-xs text-gray-400 font-mono">{p.size_run || '—'}</td>
+                      <td className="px-5 py-4">
+                        <span className={`px-2 py-1 rounded-full text-[10px] font-bold border ${
+                          p.category === 'Footwear' ? 'bg-brand-gold/10 text-brand-gold border-brand-gold/30' :
+                          p.category === 'Apparel' ? 'bg-blue-500/10 text-blue-400 border-blue-500/30' :
+                          p.category === 'Furniture' ? 'bg-purple-500/10 text-purple-400 border-purple-500/30' :
+                          'bg-gray-500/10 text-gray-400 border-gray-500/30'
+                        }`}>
+                          {p.category}
                         </span>
-                      </div>
-                    </td>
-                    <td className="px-5 py-4 font-medium text-white">{p.name}</td>
-                    <td className="px-5 py-4 text-xs text-gray-400">{p.season_collection || '—'}</td>
-                    <td className="px-5 py-4 text-xs text-gray-400">{p.colorway || '—'}</td>
-                    <td className="px-5 py-4 text-xs text-gray-400 font-mono">{p.size_run || '—'}</td>
-                    <td className="px-5 py-4">
-                      <span className={`px-2 py-1 rounded-full text-xs font-bold border ${
-                        p.category === 'Footwear' ? 'bg-brand-gold/10 text-brand-gold border-brand-gold/30' :
-                        p.category === 'Apparel' ? 'bg-blue-500/10 text-blue-400 border-blue-500/30' :
-                        'bg-gray-500/10 text-gray-400 border-gray-500/30'
-                      }`}>
-                        {p.category}
-                      </span>
-                    </td>
-                    <td className="px-5 py-4">
-                      {isLow ? (
-                        <span className={`font-bold ${isCritical ? 'text-red-400' : 'text-amber-400'}`}>
-                          {p.stockLevel} ⚠
-                        </span>
-                      ) : (
-                        <span className="text-gray-200">{p.stockLevel}</span>
-                      )}
-                    </td>
-                    <td className="px-5 py-4 text-gray-400 font-mono text-xs">${p.cost_price || p.costPrice || '—'}</td>
-                    <td className="px-5 py-4 font-serif text-base font-bold text-white">${p.selling_price || p.salePrice || '—'}</td>
-                    <td className="px-5 py-4 text-center">
-                      <div className="flex items-center justify-center gap-3">
-                        <button 
-                          title="Edit SKU" 
-                          onClick={() => setEditingProduct(p)}
-                          className="p-1.5 text-gray-400 hover:text-brand-gold hover:bg-brand-gold/10 rounded-md transition-all"
-                        >
-                          <Edit3 size={16} />
-                        </button>
-                        <button 
-                          title="Delete SKU" 
-                          onClick={() => handleDeleteProduct(p._id)}
-                          className="p-1.5 text-gray-400 hover:text-red-400 hover:bg-red-400/10 rounded-md transition-all"
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </section>
+                      </td>
+                      <td className="px-5 py-4">
+                        {isLow ? (
+                          <span className={`font-bold ${isCritical ? 'text-red-400' : 'text-amber-400'}`}>
+                            {p.stockLevel} ⚠
+                          </span>
+                        ) : (
+                          <span className="text-gray-200">{p.stockLevel}</span>
+                        )}
+                      </td>
+                      <td className="px-5 py-4 text-gray-400 font-mono text-xs">${p.cost_price || p.costPrice || '—'}</td>
+                      <td className="px-5 py-4 font-serif text-base font-bold text-white">${p.selling_price || p.salePrice || '—'}</td>
+                      <td className="px-5 py-4 text-center">
+                        <div className="flex items-center justify-center gap-3">
+                          <button 
+                            title="Edit SKU" 
+                            onClick={() => setEditingProduct(p)}
+                            className="p-1.5 text-gray-400 hover:text-brand-gold hover:bg-brand-gold/10 rounded-md transition-all"
+                          >
+                            <Edit3 size={16} />
+                          </button>
+                          <button 
+                            title="Delete SKU" 
+                            onClick={() => handleDeleteProduct(p._id)}
+                            className="p-1.5 text-gray-400 hover:text-red-400 hover:bg-red-400/10 rounded-md transition-all"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </section>
+        </>
       )}
     </div>
   );

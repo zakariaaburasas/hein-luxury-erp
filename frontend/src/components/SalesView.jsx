@@ -42,7 +42,17 @@ export default function SalesView({ searchQuery }) {
   const [showForm, setShowForm] = useState(false);
   const [toast, setToast] = useState(null);
   const [selectedProduct, setSelectedProduct] = useState(null);
-  const [formData, setFormData] = useState({ product: '', customer: '', customerName: '', customerPhone: '', addToVip: false, quantitySold: 1, discountAmount: 0, status: 'Paid ', payment_method: 'Zaad' });
+  const [formData, setFormData] = useState({ 
+    product: '', 
+    customer: '', 
+    customerName: '', 
+    customerPhone: '', 
+    addToVip: false, 
+    quantitySold: 1, 
+    discountAmount: 0, 
+    status: 'Paid ', 
+    payment_method: 'Zaad' 
+  });
   const [submitting, setSubmitting] = useState(false);
 
   const filteredSales = sales.filter(s => 
@@ -74,8 +84,8 @@ export default function SalesView({ searchQuery }) {
 
   const executeSale = async (e) => {
     e.preventDefault();
-    if (!formData.product) return;
-    if (!selectedProduct) return;
+    if (!formData.product || !selectedProduct) return;
+    
     if (selectedProduct.stockLevel < formData.quantitySold) {
       return setToast({ type: 'alert', message: `Only ${selectedProduct.stockLevel} units available for ${selectedProduct.name}` });
     }
@@ -97,37 +107,34 @@ export default function SalesView({ searchQuery }) {
       const data = await res.json();
 
       if (res.ok) {
-        // Patch the new sale for immediate local display
         const newSale = data.sale;
         newSale.product = selectedProduct;
         newSale.customer = customers.find(c => c._id === formData.customer) || null;
         setSales(prev => [newSale, ...prev]);
 
-        // Update local stock level
         setProducts(prev => prev.map(p =>
           p._id === selectedProduct._id
             ? { ...p, stockLevel: p.stockLevel - formData.quantitySold }
             : p
         ));
 
-        // Show alert or success toast
         if (data.lowStockAlert?.triggered) {
           setToast({ type: 'alert', message: data.lowStockAlert.message });
         } else {
-          setToast({ type: 'success', message: `Sale of ${formData.quantitySold}x ${selectedProduct.name} — $${revenue.toLocaleString()} logged.` });
+          setToast({ type: 'success', message: `Sale of ${formData.quantitySold}x ${selectedProduct.name} recorded.` });
         }
 
         setShowForm(false);
         setFormData({ product: '', customer: '', customerName: '', customerPhone: '', addToVip: false, quantitySold: 1, discountAmount: 0, status: 'Paid ', payment_method: 'Zaad' });
         setSelectedProduct(null);
-        // Fetch customers to update dropdown if a new one was auto-created
+        
         const cRes = await fetch(`${API_URL}/api/customers`);
         if (cRes.ok) setCustomers(await cRes.json());
       } else {
         setToast({ type: 'alert', message: data.message || 'Sale failed.' });
       }
     } catch (err) {
-      setToast({ type: 'alert', message: 'Server offline. Check backend.' });
+      setToast({ type: 'alert', message: 'Server offline.' });
     } finally {
       setSubmitting(false);
     }
@@ -140,8 +147,7 @@ export default function SalesView({ searchQuery }) {
       if (res.ok) {
         setSales(prev => prev.filter(s => s._id !== id));
         setToast({ type: 'success', message: 'Transaction voided and stock restored.' });
-        const pRes = await fetch(`${API_URL}/api/products`);
-        if (pRes.ok) setProducts(await pRes.json());
+        fetchAll();
       }
     } catch (error) {
       console.error('Error voiding sale:', error);
@@ -151,49 +157,34 @@ export default function SalesView({ searchQuery }) {
   const markRefunded = async (sale) => {
     if (!window.confirm(`Mark this sale as Refunded? Stock will be restored to inventory.`)) return;
     try {
-      // 1. Update status to Refunded
       const res = await fetch(`${API_URL}/api/sales/${sale._id}/status`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: 'Refunded' })
       });
       if (res.ok) {
-        const updated = await res.json();
-        setSales(prev => prev.map(s => s._id === updated._id ? { ...s, status: 'Refunded' } : s));
-        // 2. Restore stock
-        await fetch(`${API_URL}/api/products/${sale.product?._id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ stockLevel: (sale.product?.stockLevel || 0) + (sale.quantitySold || 0) })
-        });
-        setToast({ type: 'success', message: `Refund recorded. Stock restored for ${sale.product?.name}.` });
-        const pRes = await fetch(`${API_URL}/api/products`);
-        if (pRes.ok) setProducts(await pRes.json());
+        setSales(prev => prev.map(s => s._id === sale._id ? { ...s, status: 'Refunded' } : s));
+        fetchAll();
+        setToast({ type: 'success', message: `Refund recorded.` });
       }
     } catch (error) {
       console.error('Error marking refund:', error);
     }
   };
 
-  const totalQty = formData.quantitySold;
   const liveDiscount = parseFloat(formData.discountAmount) || 0;
   const liveRevenue = selectedProduct
-    ? (((selectedProduct.selling_price || selectedProduct.salePrice || 0) - liveDiscount) * totalQty)
+    ? (((selectedProduct.selling_price || selectedProduct.salePrice || 0) - liveDiscount) * formData.quantitySold)
     : 0;
 
   const now = new Date();
   const currMonth = now.getMonth();
   const currYear = now.getFullYear();
 
-  const isThisMonth = s => {
-    const d = new Date(s.createdAt);
-    return d.getMonth() === currMonth && d.getFullYear() === currYear;
-  };
   const isRefunded = s => String(s.status).toLowerCase().includes('refund');
-
   const salesToday = sales.filter(s => !isRefunded(s) && new Date(s.createdAt).toDateString() === now.toDateString()).length;
-  const salesMonth = sales.filter(s => !isRefunded(s) && isThisMonth(s)).length;
-  const refundsMonth = sales.filter(s => isRefunded(s) && isThisMonth(s)).length;
+  const salesMonth = sales.filter(s => !isRefunded(s) && new Date(s.createdAt).getMonth() === currMonth && new Date(s.createdAt).getFullYear() === currYear).length;
+  const refundsMonth = sales.filter(s => isRefunded(s) && new Date(s.createdAt).getMonth() === currMonth).length;
   const salesYear = sales.filter(s => !isRefunded(s) && new Date(s.createdAt).getFullYear() === currYear).length;
 
   return (
@@ -203,7 +194,7 @@ export default function SalesView({ searchQuery }) {
       <header className="mb-10 flex items-center justify-between border-b border-brand-border pb-6">
         <div>
           <h2 className="font-serif text-2xl tracking-wide text-white">Point of Sale</h2>
-          <p className="mt-1 text-sm text-gray-400">Every sale auto-decrements your live inventory in real time.</p>
+          <p className="mt-1 text-sm text-gray-400">Inventory decrements in real-time.</p>
         </div>
         <button className="btn-gold" onClick={() => setShowForm(!showForm)}>
           {showForm ? '← Back to Ledger' : '+ Process Transaction'}
@@ -211,83 +202,64 @@ export default function SalesView({ searchQuery }) {
       </header>
 
       {!showForm && (
-        <div className="grid grid-cols-5 gap-4 mb-8">
-          <div className="rounded-[1rem] border border-brand-border bg-brand-gray/50 shadow-inner p-5">
-            <p className="text-[0.65rem] uppercase tracking-widest text-gray-400">Sales Today</p>
-            <h3 className="font-serif text-2xl text-white font-bold mt-1">{salesToday}</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 md:gap-4 mb-8">
+          <div className="rounded-[1rem] border border-brand-border bg-brand-gray/50 shadow-inner p-4 md:p-5 text-center sm:text-left">
+            <p className="text-[0.65rem] uppercase tracking-widest text-gray-400">Today</p>
+            <h3 className="font-serif text-xl md:text-2xl text-white font-bold mt-1">{salesToday}</h3>
           </div>
-          <div className="rounded-[1rem] border border-brand-border bg-brand-gray/50 shadow-inner p-5">
-            <p className="text-[0.65rem] uppercase tracking-widest text-gray-400">Sales This Month</p>
-            <h3 className="font-serif text-2xl text-white font-bold mt-1">{salesMonth}</h3>
+          <div className="rounded-[1rem] border border-brand-border bg-brand-gray/50 shadow-inner p-4 md:p-5 text-center sm:text-left">
+            <p className="text-[0.65rem] uppercase tracking-widest text-gray-400">Month</p>
+            <h3 className="font-serif text-xl md:text-2xl text-white font-bold mt-1">{salesMonth}</h3>
           </div>
-          <div className="rounded-[1rem] border border-red-900/40 bg-red-900/10 shadow-inner p-5">
-            <p className="text-[0.65rem] uppercase tracking-widest text-red-400">Refunds This Month</p>
-            <h3 className="font-serif text-2xl text-red-400 font-bold mt-1">{refundsMonth}</h3>
+          <div className="rounded-[1rem] border border-red-900/40 bg-red-900/10 shadow-inner p-4 md:p-5 text-center sm:text-left text-red-400">
+            <p className="text-[0.65rem] uppercase tracking-widest">Refunds</p>
+            <h3 className="font-serif text-xl md:text-2xl font-bold mt-1">{refundsMonth}</h3>
           </div>
-          <div className="rounded-[1rem] border border-brand-border bg-brand-gray/50 shadow-inner p-5">
-            <p className="text-[0.65rem] uppercase tracking-widest text-gray-400">Sales This Year</p>
-            <h3 className="font-serif text-2xl text-white font-bold mt-1">{salesYear}</h3>
+          <div className="rounded-[1rem] border border-brand-border bg-brand-gray/50 shadow-inner p-4 md:p-5 text-center sm:text-left">
+            <p className="text-[0.65rem] uppercase tracking-widest text-gray-400">Year</p>
+            <h3 className="font-serif text-xl md:text-2xl text-white font-bold mt-1">{salesYear}</h3>
           </div>
-          <div className="rounded-[1rem] border border-brand-border bg-brand-gray/50 shadow-inner p-5">
-            <p className="text-[0.65rem] uppercase tracking-widest text-gray-400">All-Time Sales</p>
-            <h3 className="font-serif text-2xl text-brand-gold font-bold mt-1">{sales.length}</h3>
+          <div className="rounded-[1rem] border border-brand-border bg-brand-gray/50 shadow-inner p-4 md:p-5 text-center sm:text-left col-span-1 sm:col-span-2 lg:col-span-1">
+            <p className="text-[0.65rem] uppercase tracking-widest text-brand-gold">Total</p>
+            <h3 className="font-serif text-xl md:text-2xl text-brand-gold font-bold mt-1">{sales.length}</h3>
           </div>
         </div>
       )}
 
       {showForm ? (
-        <div className="rounded-[1.25rem] border border-brand-border bg-brand-gray p-10 shadow-xl">
-          <h3 className="mb-8 font-serif text-xl text-brand-gold">New Sale Transaction</h3>
+        <div className="rounded-[1.25rem] border border-brand-border bg-brand-gray p-6 md:p-10 shadow-xl">
+          <h3 className="mb-6 md:mb-8 font-serif text-xl text-brand-gold">New Transaction</h3>
           <form onSubmit={executeSale} className="space-y-6">
-            <div className="grid grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
               <div className="space-y-2">
-                <label className="text-xs uppercase tracking-widest text-gray-400">Select SKU / Product</label>
-                <select
-                  className="form-control"
-                  required
-                  value={formData.product}
-                  onChange={e => handleProductSelect(e.target.value)}
-                >
+                <label className="text-xs uppercase tracking-widest text-gray-400">Select Product</label>
+                <select className="form-control" required value={formData.product} onChange={e => handleProductSelect(e.target.value)}>
                   <option value="">Choose product...</option>
                   {products.map(p => (
-                    <option key={p._id} value={p._id}>
-                      [{p.sku_code || 'NO-SKU'}] {p.name} — ${p.selling_price || p.salePrice} ({p.stockLevel} in stock)
-                    </option>
+                    <option key={p._id} value={p._id}>[{p.sku_code}] {p.name} — ${p.selling_price || p.salePrice}</option>
                   ))}
                 </select>
               </div>
               <div className="space-y-4">
-                <div className="space-y-2">
-                  <label className="text-xs uppercase tracking-widest text-gray-400">Assign VIP Client (Optional)</label>
-                  <select className="form-control" value={formData.customer} onChange={e => setFormData(f => ({ ...f, customer: e.target.value }))}>
-                    <option value="">Walk-In / New Customer</option>
-                    {customers.map(c => (
-                      <option key={c._id} value={c._id}>{c.name} {c.phoneNumber ? `(${c.phoneNumber})` : ''}</option>
-                    ))}
-                  </select>
-                </div>
-                
-                {/* Inline Walk-in Form (Only visible if Walk-In is selected) */}
+                <label className="text-xs uppercase tracking-widest text-gray-400">Customer</label>
+                <select className="form-control" value={formData.customer} onChange={e => setFormData(f => ({ ...f, customer: e.target.value }))}>
+                  <option value="">Walk-In</option>
+                  {customers.map(c => (
+                    <option key={c._id} value={c._id}>{c.name}</option>
+                  ))}
+                </select>
                 {formData.customer === '' && (
                   <div className="space-y-3 pt-2 border-t border-brand-border/40">
                     <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <label className="text-[0.65rem] uppercase tracking-widest text-brand-gold">New Client Name</label>
-                        <input type="text" className="form-control text-sm" placeholder="Anonymous" value={formData.customerName} onChange={e => setFormData(f => ({...f, customerName: e.target.value}))} />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-[0.65rem] uppercase tracking-widest text-brand-gold">Phone Number</label>
-                        <input type="text" className="form-control text-sm" placeholder="Optional" value={formData.customerPhone} onChange={e => setFormData(f => ({...f, customerPhone: e.target.value}))} />
-                      </div>
+                      <input type="text" className="form-control text-sm" placeholder="Name" value={formData.customerName} onChange={e => setFormData(f => ({...f, customerName: e.target.value}))} />
+                      <input type="text" className="form-control text-sm" placeholder="Phone" value={formData.customerPhone} onChange={e => setFormData(f => ({...f, customerPhone: e.target.value}))} />
                     </div>
                     {formData.customerName.trim() !== '' && (
-                      <div className="flex items-center gap-3 cursor-pointer select-none" onClick={() => setFormData(f => ({...f, addToVip: !f.addToVip}))}>
-                        <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all shrink-0 ${formData.addToVip ? 'bg-brand-gold border-brand-gold' : 'border-gray-600 hover:border-brand-gold/50'}`}>
-                          {formData.addToVip && <span className="text-black text-xs font-black leading-none">✓</span>}
+                      <div className="flex items-center gap-3 cursor-pointer" onClick={() => setFormData(f => ({...f, addToVip: !f.addToVip}))}>
+                        <div className={`w-4 h-4 rounded border flex items-center justify-center ${formData.addToVip ? 'bg-brand-gold border-brand-gold text-black' : 'border-gray-600'}`}>
+                          {formData.addToVip && '✓'}
                         </div>
-                        <span className="text-xs text-gray-300">
-                          Register <span className="text-brand-gold font-bold">{formData.customerName}</span> as VIP Network client (Bronze Tier)
-                        </span>
+                        <span className="text-xs text-gray-400">Add to VIP Client List</span>
                       </div>
                     )}
                   </div>
@@ -296,156 +268,120 @@ export default function SalesView({ searchQuery }) {
             </div>
 
             {selectedProduct && (
-              <div className="rounded-xl bg-black/40 border border-brand-gold/20 p-5 flex items-center justify-between">
-                <div className="space-y-1">
-                  <p className="text-xs text-gray-500 uppercase tracking-widest">Selected Product Details</p>
+              <div className="rounded-xl bg-black/40 border border-brand-gold/20 p-4 md:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div>
+                  <p className="text-[10px] text-gray-500 uppercase tracking-widest">Details</p>
                   <p className="text-white font-medium">{selectedProduct.name}</p>
-                  <p className="text-xs text-gray-400 font-mono">
-                    SKU: <span className="text-brand-gold">{selectedProduct.sku_code || 'N/A'}</span>
-                    {selectedProduct.colorway && ` · ${selectedProduct.colorway}`}
-                    {selectedProduct.size_run && ` · Sizes: ${selectedProduct.size_run}`}
-                  </p>
+                  <p className="text-[10px] text-brand-gold font-mono">SKU: {selectedProduct.sku_code}</p>
                 </div>
-                <div className="text-right">
-                  <p className="text-xs text-gray-500">Stock Remaining</p>
-                  <p className={`text-2xl font-serif font-bold ${selectedProduct.stockLevel <= selectedProduct.min_stock_level ? 'text-amber-400' : 'text-white'}`}>
-                    {selectedProduct.stockLevel}
-                  </p>
+                <div className="sm:text-right border-t border-brand-border sm:border-0 pt-3 sm:pt-0 w-full sm:w-auto">
+                  <p className="text-[10px] text-gray-500">Stock</p>
+                  <p className="text-xl font-serif font-bold text-white">{selectedProduct.stockLevel} left</p>
                 </div>
               </div>
             )}
 
-            <div className="grid grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
               <div className="space-y-2">
                 <label className="text-xs uppercase tracking-widest text-gray-400">Quantity</label>
-                <input
-                  type="number"
-                  min="1"
-                  max={selectedProduct?.stockLevel || 999}
-                  className="form-control"
-                  value={formData.quantitySold}
-                  onChange={e => setFormData(f => ({ ...f, quantitySold: parseInt(e.target.value) || 1 }))}
-                  required
-                />
+                <input type="number" min="1" className="form-control" value={formData.quantitySold} onChange={e => setFormData(f => ({ ...f, quantitySold: parseInt(e.target.value) || 1 }))} required />
               </div>
               <div className="space-y-2">
-                <label className="text-xs uppercase tracking-widest text-gray-400">Discount Amount ($)</label>
-                <input
-                  type="number"
-                  min="0"
-                  max={selectedProduct?.max_discount_allowed || 0}
-                  className="form-control border-brand-gold/30"
-                  value={formData.discountAmount}
-                  onChange={e => setFormData(f => ({ ...f, discountAmount: e.target.value }))}
-                />
-                {selectedProduct && (
-                  <p className="text-[0.55rem] uppercase tracking-widest text-brand-gold mt-1">
-                    Max Employee Discount: ${selectedProduct.max_discount_allowed || 0}
-                  </p>
-                )}
+                <label className="text-xs uppercase tracking-widest text-gray-400">Discount ($)</label>
+                <input type="number" min="0" className="form-control" value={formData.discountAmount} onChange={e => setFormData(f => ({ ...f, discountAmount: e.target.value }))} />
               </div>
               <div className="space-y-2">
-                <label className="text-xs uppercase tracking-widest text-gray-400">Calculated Revenue</label>
-                <div className="form-control flex items-center cursor-not-allowed opacity-70">
-                  <span className="font-serif text-xl text-brand-gold font-bold">${liveRevenue.toLocaleString()}</span>
+                <label className="text-xs uppercase tracking-widest text-gray-400">Total Price</label>
+                <div className="form-control flex items-center bg-brand-black/40 border-brand-border">
+                  <span className="font-serif text-xl text-brand-gold font-bold w-full text-center">${liveRevenue.toLocaleString()}</span>
                 </div>
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-8">
-              <div className="space-y-2">
-                <label className="text-xs uppercase tracking-widest text-gray-400">Payment Status</label>
-                <select className="form-control" value={formData.status} onChange={e => setFormData(f => ({ ...f, status: e.target.value }))}>
-                  <option value="Paid ">Paid (Completed)</option>
-                  <option value="Unpaid ">Unpaid (Debt/Pending)</option>
-                </select>
-              </div>
-              <div className="space-y-2">
-                <label className="text-xs uppercase tracking-widest text-gray-400">Payment Method</label>
-                <select className="form-control" value={formData.payment_method} onChange={e => setFormData(f => ({ ...f, payment_method: e.target.value }))}>
-                  <option value="Zaad">Zaad</option>
-                  <option value="Edahab">eDahab</option>
-                  <option value="Bank">Bank Transfer</option>
-                  <option value="Cash">Cash</option>
-                </select>
-              </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <select className="form-control" value={formData.status} onChange={e => setFormData(f => ({ ...f, status: e.target.value }))}>
+                <option value="Paid ">Paid</option>
+                <option value="Unpaid ">Unpaid</option>
+              </select>
+              <select className="form-control" value={formData.payment_method} onChange={e => setFormData(f => ({ ...f, payment_method: e.target.value }))}>
+                <option value="Zaad">Zaad</option>
+                <option value="Edahab">eDahab</option>
+                <option value="Bank">Bank</option>
+                <option value="Cash">Cash</option>
+              </select>
             </div>
 
-            <button
-              type="submit"
-              disabled={submitting || !formData.product}
-              className="btn-gold w-full text-base mt-4 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {submitting ? 'Processing...' : '🔒 Confirm & Execute Sale'}
+            <button type="submit" disabled={submitting || !formData.product} className="btn-gold w-full text-base disabled:opacity-50">
+              {submitting ? 'Executing...' : '🔒 Confirm Sale'}
             </button>
           </form>
         </div>
-      ) : filteredSales.length === 0 ? (
-        <div className="text-center py-24 text-gray-500 font-mono text-sm border border-brand-border border-dashed rounded-xl">
-          {searchQuery ? `No transactions found for "${searchQuery}"` : "No transactions yet. Process your first sale above."}
-        </div>
       ) : (
-        <section className="overflow-x-auto rounded-[1.25rem] border border-brand-border bg-brand-gray shadow-xl">
-          <table className="w-full text-left text-sm">
-            <thead className="bg-black/40 text-xs uppercase tracking-widest text-brand-gold">
-              <tr>
-                <th className="border-b border-brand-border px-4 py-4">Date</th>
-                <th className="border-b border-brand-border px-4 py-4">SKU</th>
-                <th className="border-b border-brand-border px-4 py-4">Product</th>
-                <th className="border-b border-brand-border px-4 py-4">Client</th>
-                <th className="border-b border-brand-border px-4 py-4">Status</th>
-                <th className="border-b border-brand-border px-4 py-4">Method</th>
-                <th className="border-b border-brand-border px-4 py-4 text-right">Revenue</th>
-                <th className="border-b border-brand-border px-4 py-4 text-center">Action</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-brand-border">
-              {filteredSales.map(s => (
-                <tr key={s._id} className="hover:bg-white/5 transition-colors">
-                  <td className="px-4 py-4 font-mono text-xs text-gray-400">{new Date(s.createdAt).toLocaleDateString()}</td>
-                  <td className="px-4 py-4 font-mono text-xs text-brand-gold">{s.product?.sku_code || '—'}</td>
-                  <td className="px-4 py-4 font-medium text-white">
-                    {s.product?.name || 'Deleted'}
-                    <span className="text-[0.6rem] text-gray-500 font-mono ml-2">×{s.quantitySold}</span>
-                  </td>
-                  <td className="px-4 py-4 text-sm text-gray-300">
-                    {s.customer?.name || 'Walk-in'}
-                    {s.customer?.phoneNumber && <div className="text-[0.6rem] font-mono text-gray-500 mt-0.5">{s.customer.phoneNumber}</div>}
-                  </td>
-                  <td className={`px-4 py-4 font-bold text-[0.6rem] uppercase tracking-widest ${
-                    String(s.status).toLowerCase().includes('refund') ? 'text-red-400' :
-                    String(s.status).toLowerCase().includes('unpaid') ? 'text-amber-400' :
-                    'text-green-400'
-                  }`}>{s.status || 'Paid'}</td>
-                  <td className="px-4 py-4 text-gray-500 text-xs font-mono">{s.payment_method || 'Zaad'}</td>
-                  <td className={`px-4 py-4 font-serif text-base font-bold text-right ${
-                    String(s.status).toLowerCase().includes('refund') ? 'text-red-400 line-through opacity-60' : 'text-brand-gold'
-                  }`}>${s.revenue?.toLocaleString()}</td>
-                  <td className="px-4 py-4 text-center">
-                    <div className="flex items-center justify-center gap-1">
-                      {!String(s.status).toLowerCase().includes('refund') && (
-                        <button
-                          title="Mark as Refunded (Restores Stock)"
-                          onClick={() => markRefunded(s)}
-                          className="p-1.5 text-gray-400 hover:text-amber-400 hover:bg-amber-400/10 rounded-md transition-all"
-                        >
-                          <RotateCcw size={14} />
-                        </button>
-                      )}
-                      <button 
-                        title="Delete Record"
-                        onClick={() => voidSale(s._id)}
-                        className="p-1.5 text-gray-400 hover:text-red-400 hover:bg-red-400/10 rounded-md transition-all"
-                      >
-                        <Trash2 size={16} />
+        <>
+          {/* Mobile Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 lg:hidden">
+            {filteredSales.map(s => (
+              <div key={s._id} className="rounded-[1.25rem] border border-brand-border bg-brand-gray p-5 shadow-lg">
+                <div className="flex justify-between items-start mb-3">
+                  <span className="text-[10px] font-mono text-gray-500">{new Date(s.createdAt).toLocaleDateString()}</span>
+                  <span className={`text-[10px] font-bold uppercase ${String(s.status).toLowerCase().includes('refund') ? 'text-red-400' : 'text-green-400'}`}>
+                    {s.status}
+                  </span>
+                </div>
+                <h4 className="text-sm font-semibold text-white mb-1">{s.product?.name || 'Product'}</h4>
+                <p className="text-[10px] text-gray-400 mb-4">Qty: {s.quantitySold} · {s.payment_method}</p>
+                <div className="flex justify-between items-center border-t border-brand-border/50 pt-4">
+                  <span className="font-serif text-lg font-bold text-brand-gold">${s.revenue?.toLocaleString()}</span>
+                  <div className="flex gap-2">
+                    {!isRefunded(s) && (
+                      <button onClick={() => markRefunded(s)} className="p-2 border border-brand-border rounded-lg text-gray-500 hover:text-brand-gold transition-colors">
+                        <RotateCcw size={14} />
                       </button>
-                    </div>
-                  </td>
+                    )}
+                    <button onClick={() => voidSale(s._id)} className="p-2 border border-brand-border rounded-lg text-gray-500 hover:text-red-400 transition-colors">
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Desktop Table */}
+          <section className="hidden lg:block overflow-x-auto rounded-[1.25rem] border border-brand-border bg-brand-gray">
+            <table className="w-full text-left text-sm">
+              <thead className="bg-black/40 text-[10px] uppercase tracking-widest text-brand-gold">
+                <tr>
+                  <th className="p-4">Date</th>
+                  <th className="p-4">SKU</th>
+                  <th className="p-4">Product</th>
+                  <th className="p-4">Status</th>
+                  <th className="p-4 text-right">Revenue</th>
+                  <th className="p-4 text-center">Action</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </section>
+              </thead>
+              <tbody className="divide-y divide-brand-border">
+                {filteredSales.map(s => (
+                  <tr key={s._id} className="hover:bg-white/5 transition-colors">
+                    <td className="p-4 font-mono text-xs text-gray-500">{new Date(s.createdAt).toLocaleDateString()}</td>
+                    <td className="p-4 font-mono text-xs text-brand-gold">{s.product?.sku_code}</td>
+                    <td className="p-4 text-white">{s.product?.name} <span className="text-[10px] opacity-40">x{s.quantitySold}</span></td>
+                    <td className={`p-4 font-bold text-[10px] uppercase ${isRefunded(s) ? 'text-red-400' : 'text-green-400'}`}>{s.status}</td>
+                    <td className={`p-4 font-serif font-bold text-right ${isRefunded(s) ? 'line-through opacity-40' : 'text-brand-gold'}`}>${s.revenue?.toLocaleString()}</td>
+                    <td className="p-4 text-center">
+                      <div className="flex justify-center gap-2">
+                        {!isRefunded(s) && (
+                          <button onClick={() => markRefunded(s)} className="text-gray-500 hover:text-brand-gold"><RotateCcw size={14} /></button>
+                        )}
+                        <button onClick={() => voidSale(s._id)} className="text-gray-500 hover:text-red-400"><Trash2 size={14} /></button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </section>
+        </>
       )}
     </div>
   );

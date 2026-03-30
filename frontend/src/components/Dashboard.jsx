@@ -54,10 +54,7 @@ function StatCard({ title, value, subtitle, trend, isPrimary, isNegative, icon: 
 
 // ─── Main Dashboard ──────────────────────────────────────
 export default function Dashboard() {
-  const [activeTab, setActiveTab] = useState('dashboard');
-  const [searchQuery, setSearchQuery] = useState('');
-
-  // Live metrics state
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [finance, setFinance] = useState({ totalRevenue: 0, grossProfit: 0, totalExpenses: 0, netProfit: 0, totalSalesVolume: 0 });
   const [monthlyData, setMonthlyData] = useState([]);
   const [stockAlerts, setStockAlerts] = useState([]);
@@ -135,8 +132,8 @@ export default function Dashboard() {
 
     return (
       <div className="space-y-6 pb-12">
-        {/* Zone 1: Financial Summary — 4 stat cards */}
-        <div className="grid grid-cols-4 gap-5">
+        {/* Zone 1: Financial Summary — Responsive grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-5">
           <StatCard
             title="Total Revenue"
             value={`$${finance.totalRevenue.toLocaleString()}`}
@@ -174,20 +171,20 @@ export default function Dashboard() {
           />
         </div>
 
-        {/* Zone 2: Revenue Chart + Stock Alerts */}
-        <div className="grid grid-cols-12 gap-5">
-          <div className="col-span-8 h-[320px]">
+        {/* Zone 2: Revenue Chart + Stock Alerts — Responsive */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+          <div className="col-span-1 lg:col-span-8 h-[280px] md:h-[320px]">
             <RevenueChart data={monthlyData} />
           </div>
-          <div className="col-span-4 h-[320px]">
+          <div className="col-span-1 lg:col-span-4 min-h-[320px]">
             <StockAlertWidget alerts={stockAlerts} />
           </div>
         </div>
 
-        {/* Zone 3: Recent Sales + Quick Stats */}
-        <div className="grid grid-cols-12 gap-5">
+        {/* Zone 3: Recent Sales + Quick Stats — Responsive */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
           {/* Recent Sales */}
-          <div className="col-span-8 rounded-[1.25rem] bg-brand-gray border border-brand-border p-6 shadow-lg">
+          <div className="col-span-1 lg:col-span-8 rounded-[1.25rem] bg-brand-gray border border-brand-border p-5 md:p-6 shadow-lg overflow-x-auto">
             <div className="flex justify-between items-center mb-5">
               <h3 className="font-serif text-base text-white">Recent Transactions</h3>
               <button onClick={() => setActiveTab('transactions')} className="text-xs text-brand-gold hover:underline tracking-wide">View All →</button>
@@ -195,7 +192,7 @@ export default function Dashboard() {
             {recentSales.length === 0 ? (
               <p className="text-gray-500 text-sm font-mono text-center py-8">No transactions yet.</p>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-3 min-w-[300px]">
                 {recentSales.map(s => (
                   <div key={s._id} className="flex items-center justify-between py-3 border-b border-brand-border/50 last:border-0">
                     <div>
@@ -215,32 +212,32 @@ export default function Dashboard() {
             )}
           </div>
 
-          {/* Quick stats */}
-          <div className="col-span-4 space-y-4">
+          {/* Quick stats grid on mobile */}
+          <div className="col-span-1 lg:col-span-4 grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-4">
             <div className="rounded-[1.25rem] bg-brand-gray border border-brand-border p-5 flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-brand-black flex items-center justify-center">
+              <div className="w-12 h-12 rounded-xl bg-brand-black flex items-center justify-center shrink-0">
                 <Package size={20} className="text-brand-gold" />
               </div>
               <div>
-                <p className="text-xs text-gray-400 uppercase tracking-widest">SKUs Catalogued</p>
+                <p className="text-[10px] text-gray-400 uppercase tracking-widest leading-tight">SKUs Catalogued</p>
                 <p className="font-serif text-2xl font-bold text-white">{totalProducts}</p>
               </div>
             </div>
             <div className="rounded-[1.25rem] bg-brand-gray border border-brand-border p-5 flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-brand-black flex items-center justify-center">
+              <div className="w-12 h-12 rounded-xl bg-brand-black flex items-center justify-center shrink-0">
                 <Users size={20} className="text-brand-gold" />
               </div>
               <div>
-                <p className="text-xs text-gray-400 uppercase tracking-widest">VIP Clients</p>
+                <p className="text-[10px] text-gray-400 uppercase tracking-widest leading-tight">VIP Clients</p>
                 <p className="font-serif text-2xl font-bold text-white">{totalCustomers}</p>
               </div>
             </div>
             <div className="rounded-[1.25rem] bg-brand-gray border border-brand-border p-5 flex items-center gap-4">
-              <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${stockAlerts.length > 0 ? 'bg-amber-400/10' : 'bg-brand-black'}`}>
+              <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${stockAlerts.length > 0 ? 'bg-amber-400/10' : 'bg-brand-black'}`}>
                 <AlertTriangle size={20} className={stockAlerts.length > 0 ? 'text-amber-400' : 'text-gray-600'} />
               </div>
               <div>
-                <p className="text-xs text-gray-400 uppercase tracking-widest">Stock Alerts</p>
+                <p className="text-[10px] text-gray-400 uppercase tracking-widest leading-tight">Stock Alerts</p>
                 <p className={`font-serif text-2xl font-bold ${stockAlerts.length > 0 ? 'text-amber-400' : 'text-gray-500'}`}>
                   {stockAlerts.length}
                 </p>
@@ -267,21 +264,36 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="flex h-screen bg-brand-black text-white font-sans overflow-hidden selection:bg-brand-gold selection:text-brand-black">
+    <div className="flex h-screen bg-brand-black text-white font-sans overflow-hidden selection:bg-brand-gold selection:text-brand-black relative">
+
+      {/* ─── Mobile Sidebar Overlay ─────────────────── */}
+      {isSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] lg:hidden transition-opacity"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
 
       {/* ─── Sidebar ─────────────────────────────── */}
-      <aside className="w-[270px] shrink-0 bg-brand-gray border-r border-brand-border flex flex-col pt-8 pb-6 px-4">
-        {/* Logo */}
-        <div className="flex items-center gap-3 px-3 mb-10">
-          <div className="w-9 h-9 rounded-xl bg-brand-gold flex items-center justify-center text-brand-black font-serif font-bold text-xl shadow-[0_0_16px_rgba(212,175,55,0.4)]">H</div>
-          <div>
-            <span className="font-serif tracking-[0.2em] text-xl font-bold block text-brand-gold leading-none">HEIN</span>
-            <span className="text-[0.45rem] font-bold uppercase tracking-[0.2em] text-gray-500 mt-1 block">Elevating Men's Fashion</span>
+      <aside className={`fixed inset-y-0 left-0 w-[270px] lg:relative lg:flex shrink-0 bg-brand-gray border-r border-brand-border z-[70] transition-transform duration-300 transform ${
+        isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+      } flex flex-col pt-8 pb-6 px-4`}>
+        {/* Logo and Close Button */}
+        <div className="flex items-center justify-between px-3 mb-10">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-brand-gold flex items-center justify-center text-brand-black font-serif font-bold text-xl shadow-[0_0_16px_rgba(212,175,55,0.4)]">H</div>
+            <div>
+              <span className="font-serif tracking-[0.2em] text-xl font-bold block text-brand-gold leading-none">HEIN</span>
+              <span className="text-[0.45rem] font-bold uppercase tracking-[0.2em] text-gray-500 mt-1 block">Elevating Men's Fashion</span>
+            </div>
           </div>
+          <button onClick={() => setIsSidebarOpen(false)} className="lg:hidden text-gray-500 hover:text-white">
+            <Users size={18} />
+          </button>
         </div>
 
         {/* Nav */}
-        <nav className="flex-1 space-y-5 overflow-y-auto pr-1">
+        <nav className="flex-1 space-y-5 overflow-y-auto pr-1" onClick={() => setIsSidebarOpen(false)}>
           <div>
             <p className="px-3 text-[0.6rem] font-bold text-gray-600 uppercase tracking-widest mb-2">Core</p>
             <div className="space-y-1">
@@ -306,54 +318,60 @@ export default function Dashboard() {
           <div className="absolute -top-6 -right-6 w-20 h-20 bg-brand-gold opacity-5 rounded-full blur-2xl"></div>
           <div className="flex items-center gap-2 mb-3">
             <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></div>
-            <span className="text-xs text-green-400 font-bold uppercase tracking-widest">Systems Online</span>
+            <span className="text-[10px] text-green-400 font-bold uppercase tracking-widest">Systems Online</span>
           </div>
-          <p className="text-[0.65rem] text-gray-500 leading-relaxed">MongoDB · Port 5000 · Vite HMR active</p>
-          {stockAlerts.length > 0 && (
-            <div className="mt-3 flex items-center gap-2 text-amber-400">
-              <AlertTriangle size={11} />
-              <span className="text-[0.65rem] font-bold">{stockAlerts.length} SKU{stockAlerts.length > 1 ? 's' : ''} need restocking</span>
-            </div>
-          )}
+          <p className="text-[10px] text-gray-500 leading-relaxed">Vercel · Render · Atlas active</p>
         </div>
       </aside>
 
       {/* ─── Main Content ─────────────────────────────── */}
-      <main className="flex-1 flex flex-col overflow-hidden">
+      <main className="flex-1 flex flex-col overflow-hidden w-full">
         {/* Top Bar */}
-        <header className="shrink-0 flex items-center justify-between px-10 py-6 border-b border-brand-border bg-brand-black/80 backdrop-blur-sm relative z-50">
-          <div>
-            <h2 className="font-serif text-xl font-semibold text-white capitalize tracking-wide">
-              {activeTab === 'dashboard' ? 'Intelligence Overview' :
-               activeTab === 'inventory' ? 'Inventory Master' :
-               activeTab === 'transactions' ? 'Point of Sale' :
-               activeTab === 'consumer' ? 'VIP Network' :
-               activeTab === 'report' ? 'P&L Reports' :
-               activeTab === 'expenses' ? 'Accounting' : 
-               activeTab === 'production' ? 'Purchases' : activeTab}
-            </h2>
-            <p className="text-xs text-brand-gold tracking-[0.15em] mt-0.5 uppercase">
-              {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-            </p>
+        <header className="shrink-0 flex items-center justify-between px-4 md:px-10 py-4 md:py-6 border-b border-brand-border bg-brand-black/80 backdrop-blur-sm relative z-50">
+          <div className="flex items-center gap-3">
+            <button 
+              onClick={() => setIsSidebarOpen(true)}
+              className="lg:hidden p-2 rounded-lg bg-brand-gray border border-brand-border text-brand-gold"
+            >
+              <LayoutDashboard size={20} />
+            </button>
+            <div className="hidden sm:block">
+              <h2 className="font-serif text-sm md:text-xl font-semibold text-white capitalize tracking-wide">
+                {activeTab === 'dashboard' ? 'Intelligence Overview' :
+                 activeTab === 'inventory' ? 'Inventory Master' :
+                 activeTab === 'transactions' ? 'Point of Sale' :
+                 activeTab === 'consumer' ? 'VIP Network' :
+                 activeTab === 'report' ? 'P&L Reports' :
+                 activeTab === 'expenses' ? 'Accounting' : 
+                 activeTab === 'production' ? 'Purchases' : activeTab}
+              </h2>
+              <p className="text-[10px] text-brand-gold tracking-[0.15em] mt-0.5 uppercase">
+                {new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+              </p>
+            </div>
           </div>
-          <div className="flex items-center gap-4">
-            <GlobalSearch onNavigate={setActiveTab} />
+          
+          <div className="flex items-center gap-2 md:gap-4">
+            <div className="hidden md:block">
+              <GlobalSearch onNavigate={setActiveTab} />
+            </div>
             
             <NotificationPanel onNavigate={setActiveTab} />
-            <div className="flex items-center gap-3 ml-2 pl-4 border-l border-brand-border">
-              <div className="w-9 h-9 rounded-full bg-brand-gold flex items-center justify-center text-black shadow-md">
-                <User size={16} />
+            
+            <div className="flex items-center gap-2 md:gap-3 ml-2 pl-2 md:pl-4 border-l border-brand-border">
+              <div className="w-8 h-8 md:w-9 md:h-9 rounded-full bg-brand-gold flex items-center justify-center text-black shadow-md shrink-0">
+                <User size={14} />
               </div>
-              <div>
-                <p className="text-sm font-semibold text-white leading-none">Admin</p>
-                <p className="text-[0.6rem] text-brand-gold uppercase tracking-widest mt-0.5">Root Access</p>
+              <div className="hidden xs:block">
+                <p className="text-xs md:text-sm font-semibold text-white leading-none">Admin</p>
+                <p className="text-[8px] md:text-[0.6rem] text-brand-gold uppercase tracking-widest mt-0.5">Root</p>
               </div>
             </div>
           </div>
         </header>
 
         {/* Scrollable Content Area */}
-        <div className="flex-1 overflow-y-auto px-10 py-8">
+        <div className="flex-1 overflow-y-auto px-4 md:px-10 py-6 md:py-8">
           {renderContent()}
         </div>
       </main>
