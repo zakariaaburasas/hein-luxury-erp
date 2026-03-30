@@ -109,26 +109,26 @@ export default function TeamView() {
                 setShowForm(true);
             }
         }}>
-          {showForm ? 'Cancel Operation' : <><Plus size={16} /> Provision Access</>}
+          {showForm ? 'Close' : <><Plus size={16} /> Add New Staff</>}
         </button>
       </header>
 
       {showForm && (
         <div className="rounded-[1.25rem] border border-brand-border bg-bg-card p-8 shadow-xl max-w-4xl mx-auto border-t-4 border-brand-gold animate-in slide-in-from-top-4 duration-300">
           <h3 className="mb-6 font-serif text-lg text-brand-gold uppercase tracking-widest">
-            {editingMember ? `Refining ID: ${editingMember.username}` : 'Access Provisioning Protocol'}
+            {editingMember ? `Editing: ${editingMember.username}` : 'Add New Staff'}
           </h3>
           <form onSubmit={handleFormSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <label className="text-[10px] uppercase tracking-widest text-txt-muted font-bold">Public Identity</label>
-              <input className="form-control" required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} placeholder="Display Name" />
+              <label className="text-[10px] uppercase tracking-widest text-txt-muted font-bold">Full Name</label>
+              <input className="form-control" required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} placeholder="Full Name" />
             </div>
             <div className="space-y-2">
-              <label className="text-[10px] uppercase tracking-widest text-txt-muted font-bold">System Username (Fixed)</label>
-              <input className="form-control opacity-70" required readOnly={!!editingMember} value={formData.username} onChange={e => setFormData({...formData, username: e.target.value})} placeholder="User ID" />
+              <label className="text-[10px] uppercase tracking-widest text-txt-muted font-bold">Username</label>
+              <input className="form-control opacity-70" required readOnly={!!editingMember} value={formData.username} onChange={e => setFormData({...formData, username: e.target.value})} placeholder="Username" />
             </div>
             <div className="space-y-2">
-              <label className="text-[10px] uppercase tracking-widest text-txt-muted font-bold">Security Key {editingMember && '(Leave blank to keep current)'}</label>
+              <label className="text-[10px] uppercase tracking-widest text-txt-muted font-bold">Password {editingMember && '(Leave empty for no change)'}</label>
               <input type="password" className="form-control" required={!editingMember} value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} placeholder="••••••••" />
             </div>
             <div className="space-y-2">
@@ -140,23 +140,23 @@ export default function TeamView() {
               </select>
             </div>
             <div className="space-y-2">
-              <label className="text-[10px] uppercase tracking-widest text-txt-muted font-bold">Digital Contact (Email)</label>
+              <label className="text-[10px] uppercase tracking-widest text-txt-muted font-bold">Email</label>
               <input type="email" className="form-control" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} placeholder="email@hein.luxury" />
             </div>
             <div className="space-y-2">
-                <label className="text-[10px] uppercase tracking-widest text-txt-muted font-bold">Operational Status</label>
+                <label className="text-[10px] uppercase tracking-widest text-txt-muted font-bold">Status</label>
                 <select className="form-control" value={formData.status} onChange={e => setFormData({...formData, status: e.target.value})}>
-                    <option value="active">🟢 Active / Authorized</option>
-                    <option value="pending">🟡 Pending Verification</option>
-                    <option value="suspended">🔴 Access Suspended</option>
+                    <option value="active">🟢 Active</option>
+                    <option value="pending">🟡 Pending</option>
+                    <option value="suspended">🔴 Suspended</option>
                 </select>
             </div>
             <div className="space-y-2 md:col-span-2">
-              <label className="text-[10px] uppercase tracking-widest text-txt-muted font-bold">Direct Line (Phone)</label>
+              <label className="text-[10px] uppercase tracking-widest text-txt-muted font-bold">Phone Number</label>
               <input className="form-control" value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} placeholder="+..." />
             </div>
             <button type="submit" className="btn-gold md:col-span-2 mt-4 py-4 tracking-[0.2em] font-bold uppercase transition-all hover:scale-[1.01]">
-                {editingMember ? 'AUTHORIZE CHANGES' : 'CONFIRM ACCESS PRIVILEGES'}
+                Save Changes
             </button>
           </form>
         </div>
@@ -216,16 +216,25 @@ export default function TeamView() {
 
             <div className="mt-6 flex items-center justify-between relative z-10">
               <div className="flex items-center gap-2">
-                <div className={`w-1.5 h-1.5 rounded-full ${
-                    member.status === 'active' ? 'bg-green-500 animate-pulse' : 
-                    (member.status === 'pending' ? 'bg-yellow-500' : 'bg-red-500')
-                }`}></div>
-                <span className={`text-[9px] uppercase font-bold tracking-widest ${
-                     member.status === 'active' ? 'text-green-500' : 
-                     (member.status === 'pending' ? 'text-yellow-500' : 'text-red-500')
-                }`}>{member.status || 'Active'}</span>
+                {(() => {
+                    const isOnline = member.lastSeen && (new Date() - new Date(member.lastSeen)) < 60000;
+                    return (
+                        <>
+                            <div className={`w-1.5 h-1.5 rounded-full ${
+                                member.status === 'suspended' ? 'bg-red-500' : 
+                                (isOnline ? 'bg-green-500 animate-ping' : 'bg-gray-500')
+                            }`}></div>
+                            <span className={`text-[9px] uppercase font-bold tracking-widest ${
+                                member.status === 'suspended' ? 'text-red-500' : 
+                                (isOnline ? 'text-green-500' : 'text-gray-500')
+                            }`}>
+                                {member.status === 'suspended' ? 'Suspended' : (isOnline ? 'Online' : 'Offline')}
+                            </span>
+                        </>
+                    );
+                })()}
               </div>
-              <span className="text-[8px] text-txt-muted/40 italic font-mono">Last activity: {member.lastLogin ? new Date(member.lastLogin).toLocaleTimeString() : 'Never'}</span>
+              <span className="text-[8px] text-txt-muted/40 italic font-mono">Last Seen: {member.lastSeen ? new Date(member.lastSeen).toLocaleTimeString() : 'Never'}</span>
             </div>
           </div>
         ))}

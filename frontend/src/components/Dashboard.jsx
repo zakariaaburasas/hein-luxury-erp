@@ -90,6 +90,21 @@ export default function Dashboard({ user: initialUser, role, userId }) {
   const isStaff = role === 'staff';
   const isAdmin = role === 'admin';
 
+  useEffect(() => {
+    if (!userId) return;
+    
+    // Heartbeat to keep status "Online"
+    const pingInterval = setInterval(async () => {
+      try {
+        await fetch(`${API_URL}/api/users/ping/${userId}`, { method: 'PUT' });
+      } catch (err) {
+        console.warn('Heartbeat synchronization failed.');
+      }
+    }, 30000); // Pulse every 30s
+
+    return () => clearInterval(pingInterval);
+  }, [userId]);
+  
   const handleProfileSave = (name, avatar) => {
     setDisplayName(name);
     setAvatarPath(avatar);

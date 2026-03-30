@@ -9,6 +9,7 @@ const UserSchema = new mongoose.Schema({
   email: { type: String },
   phone: { type: String },
   lastLogin: { type: Date },
+  lastSeen: { type: Date },
   status: { type: String, default: 'active' },
   createdAt: { type: Date, default: Date.now }
 });

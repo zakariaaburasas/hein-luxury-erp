@@ -60,9 +60,9 @@ export default function AddProductForm({ onAdd, onCancel, initialData }) {
            </div>
            <div>
               <h3 className="font-serif text-xl text-brand-gold">
-                {initialData ? 'Refine Luxury SKU' : 'Register New Asset'}
+                {initialData ? 'Update Product' : 'Add New Product'}
               </h3>
-              <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">Inventory Ledger v2.4</p>
+              <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold font-sans">Inventory Ledger v2.4</p>
            </div>
         </div>
         <button type="button" onClick={onCancel} className="p-2 rounded-lg hover:bg-white/5 transition-colors text-gray-500 hover:text-white">
@@ -83,7 +83,7 @@ export default function AddProductForm({ onAdd, onCancel, initialData }) {
                  ) : (
                    <div className="text-center p-4">
                       <Camera size={24} className="mx-auto mb-2 text-gray-600" />
-                      <p className="text-[8px] uppercase tracking-widest text-gray-500 font-bold">Capture Asset</p>
+                      <p className="text-[8px] uppercase tracking-widest text-gray-500 font-bold font-sans">Upload Photo</p>
                    </div>
                  )}
                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
@@ -95,11 +95,11 @@ export default function AddProductForm({ onAdd, onCancel, initialData }) {
 
            <div className="flex-1 w-full grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <label className="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Asset Nomenclature</label>
-                <input type="text" name="name" className="form-control" required value={formData.name} onChange={handleChange} placeholder="e.g. Italian Leather Sofa" />
+                <label className="text-[10px] uppercase tracking-widest text-gray-400 font-bold font-sans">Product Name</label>
+                <input type="text" name="name" className="form-control font-sans" required value={formData.name} onChange={handleChange} placeholder="e.g. Italian Leather Sofa" />
               </div>
               <div className="space-y-2">
-                <label className="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Unique SKU Identity</label>
+                <label className="text-[10px] uppercase tracking-widest text-gray-400 font-bold font-sans">SKU Code</label>
                 <input type="text" name="sku_code" className="form-control font-mono" required value={formData.sku_code} onChange={handleChange} placeholder="HEIN-XXXX-001" />
               </div>
            </div>
@@ -108,8 +108,8 @@ export default function AddProductForm({ onAdd, onCancel, initialData }) {
         {/* Row 2: Category + Collection */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
           <div className="space-y-2">
-            <label className="text-[10px] uppercase tracking-widest text-gray-400">Category</label>
-            <select name="category" className="form-control" value={formData.category} onChange={handleChange}>
+            <label className="text-[10px] uppercase tracking-widest text-gray-400 font-sans">Category</label>
+            <select name="category" className="form-control font-sans" value={formData.category} onChange={handleChange}>
               <option value="Furniture">Furniture</option>
               <option value="Footwear">Footwear</option>
               <option value="Apparel">Apparel</option>
@@ -117,65 +117,64 @@ export default function AddProductForm({ onAdd, onCancel, initialData }) {
             </select>
           </div>
           <div className="space-y-2">
-            <label className="text-[10px] uppercase tracking-widest text-gray-400">Collection</label>
-            <input type="text" name="season_collection" className="form-control" value={formData.season_collection} onChange={handleChange} placeholder="e.g. Summer 2024" />
+            <label className="text-[10px] uppercase tracking-widest text-gray-400 font-sans">Collection</label>
+            <input type="text" name="season_collection" className="form-control font-sans" value={formData.season_collection} onChange={handleChange} placeholder="e.g. Summer 2024" />
           </div>
         </div>
 
         {/* Row 3: Colorway + Size Run */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
           <div className="space-y-2">
-            <label className="text-[10px] uppercase tracking-widest text-gray-400">Colorway / Finish</label>
-            <input type="text" name="colorway" className="form-control" value={formData.colorway} onChange={handleChange} placeholder="e.g. Obsidian Black" />
+            <label className="text-[10px] uppercase tracking-widest text-gray-400 font-sans">Color/Finish</label>
+            <input type="text" name="colorway" className="form-control font-sans" value={formData.colorway} onChange={handleChange} placeholder="e.g. Obsidian Black" />
           </div>
           <div className="space-y-2">
-            <label className="text-[10px] uppercase tracking-widest text-gray-400">Size / Dimensions</label>
-            <input type="text" name="size_run" className="form-control" value={formData.size_run} onChange={handleChange} placeholder="e.g. Large / 200x100cm" />
+            <label className="text-[10px] uppercase tracking-widest text-gray-400 font-sans">Size/Dimensions</label>
+            <input type="text" name="size_run" className="form-control font-sans" value={formData.size_run} onChange={handleChange} placeholder="e.g. Large" />
           </div>
         </div>
 
         {/* Row 4: Pricing Math */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6">
           <div className="space-y-2">
-            <label className="text-[10px] uppercase tracking-widest text-gray-400">Cost ($)</label>
-            <input type="number" name="cost_price" className="form-control" required value={formData.cost_price} onChange={handleChange} />
+            <label className="text-[10px] uppercase tracking-widest text-gray-400 font-sans">Cost ($)</label>
+            <input type="number" name="cost_price" className="form-control font-sans" required value={formData.cost_price} onChange={handleChange} />
           </div>
           <div className="space-y-2">
-            <label className="text-[10px] uppercase tracking-widest text-gray-400">Retail ($)</label>
-            <input type="number" name="selling_price" className="form-control" required value={formData.selling_price} onChange={handleChange} />
+            <label className="text-[10px] uppercase tracking-widest text-gray-400 font-sans">Retail ($)</label>
+            <input type="number" name="selling_price" className="form-control font-sans" required value={formData.selling_price} onChange={handleChange} />
           </div>
           <div className="space-y-2">
-            <label className="text-[10px] uppercase tracking-widest text-brand-gold">Max Discount ($)</label>
-            <input type="number" name="max_discount_allowed" className="form-control border-brand-gold/30" required value={formData.max_discount_allowed} onChange={handleChange} />
+            <label className="text-[10px] uppercase tracking-widest text-brand-gold font-sans font-bold">Max Discount ($)</label>
+            <input type="number" name="max_discount_allowed" className="form-control border-brand-gold/30 font-sans" required value={formData.max_discount_allowed} onChange={handleChange} />
           </div>
         </div>
 
         {/* Row 5: Stock Logic */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6">
           <div className="space-y-2">
-            <label className="text-[10px] uppercase tracking-widest text-gray-400">Units in Stock</label>
-            <input type="number" name="stockLevel" className="form-control" required value={formData.stockLevel} onChange={handleChange} />
+            <label className="text-[10px] uppercase tracking-widest text-gray-400 font-sans">Units in Stock</label>
+            <input type="number" name="stockLevel" className="form-control font-sans" required value={formData.stockLevel} onChange={handleChange} />
           </div>
           <div className="space-y-2">
-            <label className="text-[10px] uppercase tracking-widest text-gray-400">Low Stock Alert</label>
-            <input type="number" name="min_stock_level" className="form-control" required value={formData.min_stock_level} onChange={handleChange} />
+            <label className="text-[10px] uppercase tracking-widest text-gray-400 font-sans">Low Stock Alert</label>
+            <input type="number" name="min_stock_level" className="form-control font-sans" required value={formData.min_stock_level} onChange={handleChange} />
           </div>
           <div className="space-y-2">
-            <label className="text-[10px] uppercase tracking-widest text-gray-400">Manufacturer</label>
-            <input type="text" name="manufacturer" className="form-control" required value={formData.manufacturer} onChange={handleChange} placeholder="e.g. HEIN Works" />
+            <label className="text-[10px] uppercase tracking-widest text-gray-400 font-sans">Manufacturer</label>
+            <input type="text" name="manufacturer" className="form-control font-sans" required value={formData.manufacturer} onChange={handleChange} placeholder="e.g. HEIN Works" />
           </div>
         </div>
 
         <div className="flex flex-col sm:flex-row gap-4 mt-10 pt-6 border-t border-brand-border/50">
-          <button type="submit" className="btn-gold flex-1 order-1 sm:order-2">
-            {initialData ? 'Save Changes' : 'Register SKU'}
+          <button type="submit" className="btn-gold flex-1 order-1 sm:order-2 font-bold tracking-widest">
+            {initialData ? 'Update Product' : 'Add Product'}
           </button>
-          <button type="button" onClick={onCancel} className="p-3 px-8 text-gray-500 hover:text-white transition-colors order-2 sm:order-1 text-center">
+          <button type="button" onClick={onCancel} className="p-3 px-8 text-gray-500 hover:text-white transition-colors order-2 sm:order-1 text-center font-sans">
             Cancel
           </button>
         </div>
       </form>
     </div>
-
   );
 }

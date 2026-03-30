@@ -62,11 +62,11 @@ export default function ProfileView({ userId, currentName, currentAvatar, curren
     <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-10">
       <header className="border-b border-brand-border pb-6 flex justify-between items-end">
         <div>
-          <h2 className="font-serif text-3xl tracking-wide text-txt-main">Identity & Presence</h2>
+          <h2 className="font-serif text-3xl tracking-wide text-txt-main">Profile Settings</h2>
           <p className="mt-1 text-sm text-txt-muted">Refine your signature across the digital luxury ecosystem.</p>
         </div>
         <div className="text-right hidden sm:block">
-           <p className="text-[10px] text-brand-gold uppercase tracking-[0.3em] font-bold">Encrypted Link</p>
+           <p className="text-[10px] text-brand-gold uppercase tracking-[0.3em] font-bold font-sans">Encrypted Link</p>
            <p className="text-[9px] text-gray-500 font-mono">NODEID: {userId || 'ANONYMOUS'}</p>
         </div>
       </header>
@@ -102,7 +102,7 @@ export default function ProfileView({ userId, currentName, currentAvatar, curren
           />
           
           <div className="text-center">
-            <p className="text-xs font-bold text-txt-main mb-1">Portrait Presentation</p>
+            <p className="text-xs font-bold text-txt-main mb-1 font-sans">Profile Photo</p>
             <p className="text-[10px] text-txt-muted leading-relaxed px-4">Upload a high-resolution device photo for global recognition.</p>
           </div>
         </div>
@@ -114,14 +114,14 @@ export default function ProfileView({ userId, currentName, currentAvatar, curren
             
             <div className="space-y-6 relative z-10">
               <div className="space-y-2">
-                <label className="text-[10px] uppercase tracking-[0.2em] text-txt-muted font-bold ml-1">Full Legal Identity</label>
+                <label className="text-[10px] uppercase tracking-[0.2em] text-txt-muted font-bold ml-1 font-sans">Full Legal Identity</label>
                 <div className="relative">
                    <User className="absolute left-4 top-1/2 -translate-y-1/2 text-brand-gold" size={18} />
                    <input 
                     type="text" 
                     value={name} 
                     onChange={e => setName(e.target.value)} 
-                    className="form-control text-lg py-4 pl-12 pr-6 w-full" 
+                    className="form-control text-lg py-4 pl-12 pr-6 w-full font-sans" 
                     placeholder="Full Name"
                     required
                   />
@@ -130,20 +130,20 @@ export default function ProfileView({ userId, currentName, currentAvatar, curren
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <label className="text-[10px] uppercase tracking-[0.2em] text-txt-muted font-bold ml-1">Direct Correspondence</label>
+                  <label className="text-[10px] uppercase tracking-[0.2em] text-txt-muted font-bold ml-1 font-sans">Direct Correspondence</label>
                   <div className="relative">
                      <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={16} />
                      <input 
                       type="email" 
                       value={email} 
                       onChange={e => setEmail(e.target.value)} 
-                      className="form-control py-3 pl-12 pr-6 w-full" 
+                      className="form-control py-3 pl-12 pr-6 w-full font-sans" 
                       placeholder="email@luxury.com"
                     />
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[10px] uppercase tracking-[0.2em] text-txt-muted font-bold ml-1">Secure Line</label>
+                  <label className="text-[10px] uppercase tracking-[0.2em] text-txt-muted font-bold ml-1 font-sans">Secure Line</label>
                   <div className="relative">
                      <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={16} />
                      <input 
@@ -161,10 +161,10 @@ export default function ProfileView({ userId, currentName, currentAvatar, curren
                 <button 
                   type="submit" 
                   disabled={isSaving}
-                  className={`btn-gold w-full py-4 flex items-center justify-center gap-2 transition-all ${saved ? 'bg-green-600 border-green-500 text-white' : ''} ${isSaving ? 'opacity-70 cursor-not-allowed' : ''}`}
+                  className={`btn-gold w-full py-4 flex items-center justify-center gap-2 transition-all font-bold tracking-widest ${saved ? 'bg-green-600 border-green-500 text-white' : ''} ${isSaving ? 'opacity-70 cursor-not-allowed' : ''}`}
                 >
-                  {isSaving ? <Loader2 className="animate-spin" size={20} /> : saved ? <Check size={20} /> : <Check size={20} />}
-                  {isSaving ? 'Synchronizing Archive...' : saved ? 'Archived successfully' : 'Seal & Synchronize Profile'}
+                  {isSaving ? <Loader2 className="animate-spin text-brand-gold" size={20} /> : saved ? <Check size={20} /> : <Check size={20} />}
+                  {isSaving ? 'Saving...' : saved ? 'Profile Updated' : 'Save Changes'}
                 </button>
               </div>
             </div>
