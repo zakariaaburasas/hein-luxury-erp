@@ -359,7 +359,7 @@ export default function Dashboard({ user: initialUser, role, userId, onLogout })
               <LayoutDashboard size={20} />
             </button>
             <div className="hidden md:block w-[220px] lg:w-[280px]">
-              <GlobalSearch />
+              <GlobalSearch onNavigate={setActiveTab} />
             </div>
             <div className="hidden sm:block">
               <h2 className="font-serif text-sm md:text-xl font-semibold text-txt-main capitalize tracking-wide">

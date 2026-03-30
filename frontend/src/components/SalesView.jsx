@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, CheckCircle, AlertTriangle, Trash2, RotateCcw } from 'lucide-react';
+import { X, CheckCircle, AlertTriangle, Trash2, RotateCcw, User } from 'lucide-react';
 import API_URL from '../api/config';
 
 // Toast notification component
