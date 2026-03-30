@@ -103,23 +103,23 @@ export default function CRMView({ searchQuery }) {
       </header>
 
       {showForm && (
-        <div className="rounded-[1.25rem] border border-brand-border bg-brand-gray p-8 shadow-xl">
+        <div className="rounded-[1.25rem] border border-brand-border bg-brand-gray p-6 md:p-8 shadow-xl">
           <h3 className="mb-6 font-serif text-lg text-brand-gold">{editingCustomer ? 'Update Client Profile' : 'New VIP Registration'}</h3>
-          <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-5">
-            <div className="space-y-2"><label className="text-xs uppercase tracking-widest text-gray-400">Full Name</label><input className="form-control" required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} /></div>
-            <div className="space-y-2"><label className="text-xs uppercase tracking-widest text-gray-400">Phone Number</label><input className="form-control" value={formData.phoneNumber} onChange={e => setFormData({...formData, phoneNumber: e.target.value})} /></div>
-            <div className="space-y-2"><label className="text-xs uppercase tracking-widest text-gray-400">Email (Optional)</label><input type="email" className="form-control" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} /></div>
+          <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div className="space-y-2"><label className="text-[10px] uppercase tracking-widest text-gray-400">Full Name</label><input className="form-control" required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} placeholder="e.g. Zakaria Aburasas" /></div>
+            <div className="space-y-2"><label className="text-[10px] uppercase tracking-widest text-gray-400">Phone Number</label><input className="form-control font-mono" value={formData.phoneNumber} onChange={e => setFormData({...formData, phoneNumber: e.target.value})} placeholder="+252 ..." /></div>
+            <div className="space-y-2"><label className="text-[10px] uppercase tracking-widest text-gray-400">Email (Optional)</label><input type="email" className="form-control" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} placeholder="client@example.com" /></div>
             <div className="space-y-2">
-              <label className="text-xs uppercase tracking-widest text-gray-400">VIP Tier</label>
+              <label className="text-[10px] uppercase tracking-widest text-gray-400">VIP Tier</label>
               <select className="form-control" value={formData.vipStatus} onChange={e => setFormData({...formData, vipStatus: e.target.value})}>
-                <option value="Bronze">Bronze</option>
-                <option value="Silver">Silver</option>
-                <option value="Gold">Gold</option>
-                <option value="VIP">Platinum VIP</option>
+                <option value="Bronze">Bronze Status</option>
+                <option value="Silver">Silver Status</option>
+                <option value="Gold">Gold Status</option>
+                <option value="VIP">Platinum VIP Status</option>
               </select>
             </div>
-            <div className="col-span-2 space-y-2"><label className="text-xs uppercase tracking-widest text-gray-400">City / Region</label><input className="form-control" value={formData.address} onChange={e => setFormData({...formData, address: e.target.value})} placeholder="e.g. Hargeisa, Somaliland" /></div>
-            <button type="submit" className="btn-gold col-span-2 mt-2">{editingCustomer ? 'Update Record' : 'Complete Registration'}</button>
+            <div className="md:col-span-2 space-y-2"><label className="text-[10px] uppercase tracking-widest text-gray-400">City / Region</label><input className="form-control" value={formData.address} onChange={e => setFormData({...formData, address: e.target.value})} placeholder="e.g. Hargeisa, Somaliland" /></div>
+            <button type="submit" className="btn-gold md:col-span-2 mt-2 py-4 text-sm font-bold tracking-widest uppercase">{editingCustomer ? '💾 Update Record' : '💎 Complete Registration'}</button>
           </form>
         </div>
       )}

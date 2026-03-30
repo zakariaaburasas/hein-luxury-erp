@@ -111,32 +111,34 @@ export default function ProductionView() {
       </header>
 
       {showForm ? (
-        <div className="rounded-[1.25rem] border border-brand-border bg-brand-gray p-8 shadow-xl">
-          <h3 className="mb-6 font-serif text-xl text-brand-gold">New Production Requisition</h3>
-          <form onSubmit={handleAddOrder} className="grid grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <label className="text-[0.65rem] uppercase tracking-widest text-gray-500">PO Number</label>
-              <input type="text" value={formData.poNumber} onChange={e => setFormData({...formData, poNumber: e.target.value})} className="form-control" placeholder="PO-2026-XXX" required />
+        <div className="rounded-[1.25rem] border border-brand-border bg-brand-gray p-6 md:p-10 shadow-xl max-w-4xl mx-auto">
+          <h3 className="mb-6 md:mb-8 font-serif text-xl text-brand-gold">New Production Requisition</h3>
+          <form onSubmit={handleAddOrder} className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
+              <div className="space-y-2">
+                <label className="text-[10px] uppercase tracking-widest text-gray-500">PO Number</label>
+                <input type="text" value={formData.poNumber} onChange={e => setFormData({...formData, poNumber: e.target.value})} className="form-control" placeholder="PO-2026-XXX" required />
+              </div>
+              <div className="space-y-2">
+                <label className="text-[10px] uppercase tracking-widest text-gray-500">Target Factory</label>
+                <input type="text" value={formData.factory} onChange={e => setFormData({...formData, factory: e.target.value})} className="form-control" placeholder="OEM Location" required />
+              </div>
+              <div className="space-y-2">
+                <label className="text-[10px] uppercase tracking-widest text-gray-500">Product Line</label>
+                <input type="text" value={formData.productName} onChange={e => setFormData({...formData, productName: e.target.value})} className="form-control" placeholder="Item Name" required />
+              </div>
+              <div className="space-y-2">
+                <label className="text-[10px] uppercase tracking-widest text-gray-500">Quantity Units</label>
+                <input type="number" value={formData.quantity} onChange={e => setFormData({...formData, quantity: e.target.value})} className="form-control" placeholder="e.g. 500" required />
+              </div>
+              <div className="space-y-2">
+                <label className="text-[10px] uppercase tracking-widest text-gray-500">Arrival Spectrum (Date)</label>
+                <input type="date" value={formData.expectedArrival} onChange={e => setFormData({...formData, expectedArrival: e.target.value})} className="form-control" required />
+              </div>
             </div>
-            <div className="space-y-2">
-              <label className="text-[0.65rem] uppercase tracking-widest text-gray-500">Target Factory</label>
-              <input type="text" value={formData.factory} onChange={e => setFormData({...formData, factory: e.target.value})} className="form-control" placeholder="OEM Location" required />
-            </div>
-            <div className="space-y-2">
-              <label className="text-[0.65rem] uppercase tracking-widest text-gray-500">Product Line</label>
-              <input type="text" value={formData.productName} onChange={e => setFormData({...formData, productName: e.target.value})} className="form-control" placeholder="Item Name" required />
-            </div>
-            <div className="space-y-2">
-              <label className="text-[0.65rem] uppercase tracking-widest text-gray-500">Quantity Units</label>
-              <input type="number" value={formData.quantity} onChange={e => setFormData({...formData, quantity: e.target.value})} className="form-control" placeholder="e.g. 500" required />
-            </div>
-            <div className="space-y-2">
-              <label className="text-[0.65rem] uppercase tracking-widest text-gray-500">Arrival Spectrum (Date)</label>
-              <input type="date" value={formData.expectedArrival} onChange={e => setFormData({...formData, expectedArrival: e.target.value})} className="form-control" required title="Arrival Spectrum (Date)" placeholder="Select date" />
-            </div>
-            <div className="flex items-end gap-4">
-              <button type="button" className="btn-gold border-gray-600 text-gray-500 hover:bg-gray-800" onClick={() => setShowForm(false)}>Abort</button>
-              <button type="submit" className="btn-gold flex-1">Issue Requisition</button>
+            <div className="flex flex-col sm:flex-row gap-4 pt-6 border-t border-brand-border/40">
+              <button type="submit" className="btn-gold flex-1 order-1 sm:order-2 py-4">Issue PO Requisition</button>
+              <button type="button" className="p-3 px-8 text-gray-500 hover:text-white transition-colors order-2 sm:order-1 text-center" onClick={() => setShowForm(false)}>Cancel</button>
             </div>
           </form>
         </div>
@@ -148,37 +150,37 @@ export default function ProductionView() {
             </div>
           ) : (
             orders.map(order => (
-              <div key={order._id} className="group relative rounded-[1.25rem] border border-brand-border bg-brand-gray p-6 transition-all hover:bg-white/5 hover:border-brand-gold/30">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-5">
-                    <div className="w-12 h-12 rounded-xl bg-brand-black flex items-center justify-center text-brand-gold border border-brand-border/50 group-hover:border-brand-gold/20 transition-colors">
+              <div key={order._id} className="group relative rounded-[1.25rem] border border-brand-border bg-brand-gray p-4 md:p-6 transition-all hover:bg-white/5 hover:border-brand-gold/30">
+                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+                  <div className="flex items-center gap-4 md:gap-5">
+                    <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-brand-black flex items-center justify-center text-brand-gold border border-brand-border/50 group-hover:border-brand-gold/20 transition-colors shrink-0">
                       <Factory size={22} />
                     </div>
                     <div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-mono text-[0.65rem] text-brand-gold font-bold tracking-widest bg-brand-gold/10 px-2 py-0.5 rounded">{order.poNumber}</span>
-                        <h4 className="font-serif text-lg text-white">{order.productName}</h4>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="font-mono text-[0.6rem] text-brand-gold font-bold tracking-widest bg-brand-gold/10 px-2 py-0.5 rounded shrink-0">{order.poNumber}</span>
+                        <h4 className="font-serif text-sm md:text-lg text-white font-medium">{order.productName}</h4>
                       </div>
-                      <p className="text-xs text-gray-500 mt-1 uppercase tracking-widest">
-                        {order.factory} · <span className="text-brand-gold">{order.quantity.toLocaleString()} UNITS</span>
+                      <p className="text-[10px] md:text-xs text-gray-500 mt-1 uppercase tracking-widest">
+                        {order.factory} · <span className="text-brand-gold font-bold">{order.quantity.toLocaleString()} UNITS</span>
                       </p>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-8">
-                    <div className="text-right">
-                      <p className="text-[0.6rem] text-gray-600 uppercase tracking-widest mb-1.5">Estimated Ingress</p>
-                      <p className="text-xs font-medium text-gray-300">{new Date(order.expectedArrival).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
+                  <div className="flex items-center justify-between lg:justify-end gap-6 md:gap-10 border-t border-brand-border/40 lg:border-0 pt-4 lg:pt-0">
+                    <div className="lg:text-right">
+                      <p className="text-[0.6rem] text-gray-600 uppercase tracking-widest mb-1">Estimated Ingress</p>
+                      <p className="text-[10px] md:text-xs font-medium text-gray-300">{new Date(order.expectedArrival).toLocaleDateString()}</p>
                     </div>
 
                     <div className="flex flex-col items-end gap-2">
-                       <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[0.65rem] font-bold uppercase tracking-wider border ${getStatusClass(order.status)}`}>
+                       <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[0.6rem] font-bold uppercase tracking-wider border ${getStatusClass(order.status)}`}>
                         {getStatusIcon(order.status)}
                         {order.status}
                       </span>
-                      <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="flex items-center gap-2 opacity-100 lg:opacity-0 group-hover:opacity-100 transition-opacity">
                         <select
-                          className="bg-brand-black border border-brand-border text-[0.6rem] rounded px-2 py-1 text-gray-400 focus:border-brand-gold outline-none"
+                          className="bg-brand-black border border-brand-border text-[10px] rounded px-2 py-1 text-gray-400 focus:border-brand-gold outline-none"
                           value={order.status}
                           onChange={(e) => updateStatus(order._id, e.target.value)}
                         >
@@ -199,6 +201,7 @@ export default function ProductionView() {
           )}
         </div>
       )}
+
     </div>
   );
 }
