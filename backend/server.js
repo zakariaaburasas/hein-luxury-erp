@@ -32,6 +32,27 @@ app.use('/api/expenses', expenseRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 
+// Root Health Check
+app.get('/', (req, res) => {
+  res.json({ status: 'active', engine: 'HEIN Luxury ERP', version: '2.1.0', message: 'Operational.' });
+});
+
+// 404 Handler
+app.use((req, res, next) => {
+  const err = new Error('Resource not found in HEIN Engine.');
+  err.status = 404;
+  next(err);
+});
+
+// Global Error Handler
+app.use((err, req, res, next) => {
+  console.error('SERVER_CRITICAL_ERROR:', err.stack);
+  res.status(err.status || 500).json({
+    message: err.message || 'Internal logic failure in HEIN Engine.',
+    error: process.env.NODE_ENV === 'development' ? err.stack : undefined
+  });
+});
+
 // Database Connection Logic
 const startServer = async () => {
     const PORT = process.env.PORT || 5000;
