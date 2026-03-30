@@ -15,6 +15,7 @@ import AccountingView from './AccountingView';
 import ProductionView from './ProductionView';
 import GlobalSearch from './GlobalSearch';
 import NotificationPanel from './NotificationPanel';
+import ProfileView from './ProfileView';
 
 // Widgets
 import RevenueChart from './widgets/RevenueChart';
@@ -53,7 +54,7 @@ function StatCard({ title, value, subtitle, trend, isPrimary, isNegative, icon: 
 }
 
 // ─── Main Dashboard ──────────────────────────────────────
-export default function Dashboard({ user, role }) {
+export default function Dashboard({ user: initialUser, role }) {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [searchQuery, setSearchQuery] = useState('');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -66,36 +67,43 @@ export default function Dashboard({ user, role }) {
   const [activeProduction, setActiveProduction] = useState(0);
   const [loading, setLoading] = useState(true);
 
+  // Profile State
+  const [displayName, setDisplayName] = useState(() => localStorage.getItem(`hein_name_${role}`) || initialUser);
+  const [avatarPath, setAvatarPath] = useState(() => localStorage.getItem(`hein_avatar_${role}`) || (role === 'admin' ? '/avatars/admin.png' : '/avatars/staff.png'));
+
   const isStaff = role === 'staff';
   const isAdmin = role === 'admin';
-  const avatarPath = isAdmin ? '/avatars/admin.png' : '/avatars/staff.png';
+
+  const handleProfileSave = (name, avatar) => {
+    setDisplayName(name);
+    setAvatarPath(avatar);
+    localStorage.setItem(`hein_name_${role}`, name);
+    localStorage.setItem(`hein_avatar_${role}`, avatar);
+  };
 
   const hydrate = useCallback(async () => {
     setLoading(true);
     try {
-      const [finRes, monthRes, alertRes, salesRes, custRes, prodRes, shipyardRes] = await Promise.all([
-        fetch(`${API_URL}/api/finance/profit-loss`),
-        fetch(`${API_URL}/api/finance/monthly`),
-        fetch(`${API_URL}/api/sales/low-stock`),
-        fetch(`${API_URL}/api/sales`),
-        fetch(`${API_URL}/api/customers`),
-        fetch(`${API_URL}/api/products`),
-        fetch(`${API_URL}/api/production`)
-      ]);
+      const urls = [
+        `${API_URL}/api/finance/profit-loss`,
+        `${API_URL}/api/finance/monthly`,
+        `${API_URL}/api/sales/low-stock`,
+        `${API_URL}/api/sales`,
+        `${API_URL}/api/customers`,
+        `${API_URL}/api/products`,
+        `${API_URL}/api/production`
+      ];
+      const results = await Promise.all(urls.map(u => fetch(u).then(r => r.ok ? r.json() : null)));
+      
+      const [fin, month, alerts, sales, cust, prod, shipyard] = results;
+      if (fin) setFinance(fin);
+      if (month) setMonthlyData(month);
+      if (alerts) setStockAlerts(alerts);
+      if (sales) setRecentSales(sales.slice(0, 5));
+      if (cust) setTotalCustomers(cust.length);
+      if (prod) setTotalProducts(prod.length);
+      if (shipyard) setActiveProduction(shipyard.filter(p => p.status !== 'Delivered').length);
 
-      if (finRes.ok) setFinance(await finRes.json());
-      if (monthRes.ok) setMonthlyData(await monthRes.json());
-      if (alertRes.ok) setStockAlerts(await alertRes.json());
-      if (salesRes.ok) {
-        const all = await salesRes.json();
-        setRecentSales(all.slice(0, 5));
-      }
-      if (custRes.ok) setTotalCustomers((await custRes.json()).length);
-      if (prodRes.ok) setTotalProducts((await prodRes.json()).length);
-      if (shipyardRes && shipyardRes.ok) {
-        const prodData = await shipyardRes.json();
-        setActiveProduction(prodData.filter(p => p.status !== 'Delivered').length);
-      }
     } catch (e) {
       console.error('Dashboard hydration failed:', e);
     } finally {
@@ -136,7 +144,6 @@ export default function Dashboard({ user, role }) {
 
     return (
       <div className="space-y-6 pb-12">
-        {/* Only Admin sees financial cards at the top */}
         {isAdmin && (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-5">
               <StatCard title="Total Revenue" value={`$${finance.totalRevenue.toLocaleString()}`} subtitle={`${finance.totalSalesVolume} transactions`} trend={finance.totalRevenue > 0 ? 12.4 : undefined} isPrimary icon={DollarSign} />
@@ -231,6 +238,7 @@ export default function Dashboard({ user, role }) {
       case 'report':       return <FinanceView />;
       case 'expenses':     return <AccountingView />;
       case 'production':   return <ProductionView />;
+      case 'profile':      return <ProfileView currentName={displayName} currentAvatar={avatarPath} onSave={handleProfileSave} />;
       case 'dashboard':
       default:             return <OverviewContent />;
     }
@@ -238,20 +246,13 @@ export default function Dashboard({ user, role }) {
 
   return (
     <div className="flex h-screen bg-brand-black text-white font-sans overflow-hidden selection:bg-brand-gold selection:text-brand-black relative">
-
-      {/* ─── Mobile Sidebar Overlay ─────────────────── */}
       {isSidebarOpen && (
-        <div 
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] lg:hidden transition-opacity"
-          onClick={() => setIsSidebarOpen(false)}
-        />
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] lg:hidden transition-opacity" onClick={() => setIsSidebarOpen(false)} />
       )}
 
-      {/* ─── Sidebar ─────────────────────────────── */}
       <aside className={`fixed inset-y-0 left-0 w-[270px] lg:relative lg:flex shrink-0 bg-brand-gray border-r border-brand-border z-[70] transition-transform duration-300 transform ${
         isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
       } flex flex-col pt-8 pb-6 px-4`}>
-        {/* Logo */}
         <div className="flex items-center justify-between px-3 mb-10">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl bg-brand-gold flex items-center justify-center text-brand-black font-serif font-bold text-xl shadow-[0_0_16px_rgba(212,175,55,0.4)]">H</div>
@@ -262,7 +263,6 @@ export default function Dashboard({ user, role }) {
           </div>
         </div>
 
-        {/* Nav */}
         <nav className="flex-1 space-y-5 overflow-y-auto pr-1" onClick={() => setIsSidebarOpen(false)}>
           <div>
             <p className="px-3 text-[0.6rem] font-bold text-gray-600 uppercase tracking-widest mb-2">Core</p>
@@ -275,7 +275,6 @@ export default function Dashboard({ user, role }) {
             </div>
           </div>
           
-          {/* Admin Exclusive: Financial Reports */}
           {isAdmin && (
             <div>
               <p className="px-3 text-[0.6rem] font-bold text-gray-600 uppercase tracking-widest mb-2">Financial</p>
@@ -285,31 +284,32 @@ export default function Dashboard({ user, role }) {
               </div>
             </div>
           )}
+
+          <div>
+             <p className="px-3 text-[0.6rem] font-bold text-gray-600 uppercase tracking-widest mb-2">Account</p>
+             <div className="space-y-1">
+                <NavItem id="profile" label="Profile Settings" Icon={User} />
+             </div>
+          </div>
         </nav>
 
-        {/* User Card */}
-        <div className="mx-1 mt-6 rounded-[1.25rem] bg-black/40 border border-brand-border/60 p-4 relative overflow-hidden">
+        <div onClick={() => setActiveTab('profile')} className="mx-1 mt-6 rounded-[1.25rem] bg-black/40 border border-brand-border/60 p-4 relative overflow-hidden cursor-pointer hover:bg-black/60 transition-all">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl overflow-hidden bg-brand-gold/10 border border-brand-gold/20">
                <img src={avatarPath} alt="User Avatar" className="w-full h-full object-cover" />
             </div>
-            <div>
-               <p className="text-xs font-bold text-white">{user}</p>
+            <div className="flex-1 min-w-0">
+               <p className="text-xs font-bold text-white truncate">{displayName}</p>
                <p className="text-[10px] text-brand-gold uppercase tracking-widest leading-none">{role}</p>
             </div>
           </div>
         </div>
       </aside>
 
-      {/* ─── Main Content ─────────────────────────────── */}
       <main className="flex-1 flex flex-col overflow-hidden w-full">
-        {/* Top Bar */}
         <header className="shrink-0 flex items-center justify-between px-4 md:px-10 py-4 md:py-6 border-b border-brand-border bg-brand-black/80 backdrop-blur-sm relative z-50">
           <div className="flex items-center gap-3">
-            <button 
-              onClick={() => setIsSidebarOpen(true)}
-              className="lg:hidden p-2 rounded-lg bg-brand-gray border border-brand-border text-brand-gold"
-            >
+            <button onClick={() => setIsSidebarOpen(true)} className="lg:hidden p-2 rounded-lg bg-brand-gray border border-brand-border text-brand-gold">
               <LayoutDashboard size={20} />
             </button>
             <div className="hidden sm:block">
@@ -320,7 +320,8 @@ export default function Dashboard({ user, role }) {
                  activeTab === 'consumer' ? 'VIP Network' :
                  activeTab === 'report' ? 'P&L Reports' :
                  activeTab === 'expenses' ? 'Accounting' : 
-                 activeTab === 'production' ? 'Purchases' : activeTab}
+                 activeTab === 'production' ? 'Purchases' : 
+                 activeTab === 'profile' ? 'Profile Signature' : activeTab}
               </h2>
               <p className="text-[10px] text-brand-gold tracking-[0.15em] mt-0.5 uppercase">
                 {new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
@@ -330,20 +331,18 @@ export default function Dashboard({ user, role }) {
           
           <div className="flex items-center gap-2 md:gap-4">
             <NotificationPanel onNavigate={setActiveTab} />
-            
-            <div className="flex items-center gap-2 md:gap-3 ml-2 pl-2 md:pl-4 border-l border-brand-border">
+            <div onClick={() => setActiveTab('profile')} className="flex items-center gap-2 md:gap-3 ml-2 pl-2 md:pl-4 border-l border-brand-border cursor-pointer">
               <div className="w-8 h-8 md:w-9 md:h-9 rounded-full overflow-hidden border-2 border-brand-gold/20 shadow-lg shrink-0">
                  <img src={avatarPath} alt="Avatar" className="w-full h-full object-cover" />
               </div>
               <div className="hidden xs:block">
-                <p className="text-xs md:text-sm font-semibold text-white leading-none">{user}</p>
+                <p className="text-xs md:text-sm font-semibold text-white leading-none">{displayName}</p>
                 <p className="text-[8px] md:text-[0.6rem] text-brand-gold uppercase tracking-widest mt-0.5">{role}</p>
               </div>
             </div>
           </div>
         </header>
 
-        {/* Scrollable Content Area */}
         <div className="flex-1 overflow-y-auto px-4 md:px-10 py-6 md:py-8">
           {renderContent()}
         </div>
