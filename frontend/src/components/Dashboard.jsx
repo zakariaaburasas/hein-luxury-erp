@@ -53,7 +53,7 @@ function StatCard({ title, value, subtitle, trend, isPrimary, isNegative, icon: 
 }
 
 // ─── Main Dashboard ──────────────────────────────────────
-export default function Dashboard() {
+export default function Dashboard({ user, role }) {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [searchQuery, setSearchQuery] = useState('');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -65,6 +65,10 @@ export default function Dashboard() {
   const [totalProducts, setTotalProducts] = useState(0);
   const [activeProduction, setActiveProduction] = useState(0);
   const [loading, setLoading] = useState(true);
+
+  const isStaff = role === 'staff';
+  const isAdmin = role === 'admin';
+  const avatarPath = isAdmin ? '/avatars/admin.png' : '/avatars/staff.png';
 
   const hydrate = useCallback(async () => {
     setLoading(true);
@@ -103,8 +107,7 @@ export default function Dashboard() {
     if (activeTab === 'dashboard') hydrate();
   }, [activeTab, hydrate]);
 
-  // ─── Sidebar Nav Item ──────────────────────────────────────
-  const NavItem = ({ id, label, Icon, section }) => {
+  const NavItem = ({ id, label, Icon }) => {
     const isActive = activeTab === id;
     return (
       <button
@@ -121,7 +124,6 @@ export default function Dashboard() {
     );
   };
 
-  // ─── Overview Dashboard Content ──────────────────────────────────────
   const OverviewContent = () => {
     if (loading) return (
       <div className="flex items-center justify-center h-64">
@@ -134,58 +136,27 @@ export default function Dashboard() {
 
     return (
       <div className="space-y-6 pb-12">
-        {/* Zone 1: Financial Summary — Responsive grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-5">
-          <StatCard
-            title="Total Revenue"
-            value={`$${finance.totalRevenue.toLocaleString()}`}
-            subtitle={`${finance.totalSalesVolume} transactions`}
-            trend={finance.totalRevenue > 0 ? 12.4 : undefined}
-            isPrimary
-            icon={DollarSign}
-          />
-          <StatCard
-            title="Gross Profit"
-            value={`$${finance.grossProfit.toLocaleString()}`}
-            subtitle="Revenue minus COGS"
-            icon={TrendingUp}
-          />
-          <StatCard
-            title="Total Expenses"
-            value={`$${finance.totalExpenses.toLocaleString()}`}
-            subtitle="Ads, Shipping, Materials"
-            isNegative
-            icon={Receipt}
-          />
-          <StatCard
-            title="Net Profit"
-            value={`$${finance.netProfit.toLocaleString()}`}
-            subtitle="Gross Profit minus Expenses"
-            trend={finance.netProfit >= 0 ? 8.2 : -5.1}
-            icon={BarChart2}
-          />
-          <StatCard
-            title="Manufacturing POs"
-            value={activeProduction}
-            subtitle="Active production cycles"
-            trend={activeProduction > 0 ? 5 : 0}
-            icon={Factory}
-          />
-        </div>
+        {/* Only Admin sees financial cards at the top */}
+        {isAdmin && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-5">
+              <StatCard title="Total Revenue" value={`$${finance.totalRevenue.toLocaleString()}`} subtitle={`${finance.totalSalesVolume} transactions`} trend={finance.totalRevenue > 0 ? 12.4 : undefined} isPrimary icon={DollarSign} />
+              <StatCard title="Gross Profit" value={`$${finance.grossProfit.toLocaleString()}`} subtitle="Revenue minus COGS" icon={TrendingUp} />
+              <StatCard title="Total Expenses" value={`$${finance.totalExpenses.toLocaleString()}`} subtitle="Ads, Shipping, Materials" isNegative icon={Receipt} />
+              <StatCard title="Net Profit" value={`$${finance.netProfit.toLocaleString()}`} subtitle="Gross Profit minus Expenses" trend={finance.netProfit >= 0 ? 8.2 : -5.1} icon={BarChart2} />
+              <StatCard title="Manufacturing POs" value={activeProduction} subtitle="Active production cycles" trend={activeProduction > 0 ? 5 : 0} icon={Factory} />
+            </div>
+        )}
 
-        {/* Zone 2: Revenue Chart + Stock Alerts — Responsive */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
           <div className="col-span-1 lg:col-span-8 h-[280px] md:h-[320px]">
-            <RevenueChart data={monthlyData} />
+            <RevenueChart data={monthlyData} isRestricted={isStaff} />
           </div>
           <div className="col-span-1 lg:col-span-4 min-h-[320px]">
             <StockAlertWidget alerts={stockAlerts} />
           </div>
         </div>
 
-        {/* Zone 3: Recent Sales + Quick Stats — Responsive */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-          {/* Recent Sales */}
           <div className="col-span-1 lg:col-span-8 rounded-[1.25rem] bg-brand-gray border border-brand-border p-5 md:p-6 shadow-lg overflow-x-auto">
             <div className="flex justify-between items-center mb-5">
               <h3 className="font-serif text-base text-white">Recent Transactions</h3>
@@ -205,7 +176,7 @@ export default function Dashboard() {
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className="font-serif text-base font-bold text-white">${s.revenue?.toLocaleString()}</p>
+                      <p className="font-serif text-base font-bold text-white">${isStaff ? '***' : s.revenue?.toLocaleString()}</p>
                       <p className="text-[0.65rem] text-gray-500">{new Date(s.createdAt).toLocaleDateString()}</p>
                     </div>
                   </div>
@@ -214,7 +185,6 @@ export default function Dashboard() {
             )}
           </div>
 
-          {/* Quick stats grid on mobile */}
           <div className="col-span-1 lg:col-span-4 grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-4">
             <div className="rounded-[1.25rem] bg-brand-gray border border-brand-border p-5 flex items-center gap-4">
               <div className="w-12 h-12 rounded-xl bg-brand-black flex items-center justify-center shrink-0">
@@ -251,8 +221,9 @@ export default function Dashboard() {
     );
   };
 
-  // ─── Render Active View ──────────────────────────────────────
   const renderContent = () => {
+    if (isStaff && (activeTab === 'report' || activeTab === 'expenses')) return <OverviewContent />;
+    
     switch (activeTab) {
       case 'inventory':    return <InventoryView searchQuery={searchQuery} />;
       case 'transactions': return <SalesView searchQuery={searchQuery} />;
@@ -280,7 +251,7 @@ export default function Dashboard() {
       <aside className={`fixed inset-y-0 left-0 w-[270px] lg:relative lg:flex shrink-0 bg-brand-gray border-r border-brand-border z-[70] transition-transform duration-300 transform ${
         isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
       } flex flex-col pt-8 pb-6 px-4`}>
-        {/* Logo and Close Button */}
+        {/* Logo */}
         <div className="flex items-center justify-between px-3 mb-10">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl bg-brand-gold flex items-center justify-center text-brand-black font-serif font-bold text-xl shadow-[0_0_16px_rgba(212,175,55,0.4)]">H</div>
@@ -289,9 +260,6 @@ export default function Dashboard() {
               <span className="text-[0.45rem] font-bold uppercase tracking-[0.2em] text-gray-500 mt-1 block">Elevating Men's Fashion</span>
             </div>
           </div>
-          <button onClick={() => setIsSidebarOpen(false)} className="lg:hidden text-gray-500 hover:text-white">
-            <Users size={18} />
-          </button>
         </div>
 
         {/* Nav */}
@@ -306,23 +274,30 @@ export default function Dashboard() {
               <NavItem id="consumer" label="VIP Network" Icon={Users} />
             </div>
           </div>
-          <div>
-            <p className="px-3 text-[0.6rem] font-bold text-gray-600 uppercase tracking-widest mb-2">Financial</p>
-            <div className="space-y-1">
-              <NavItem id="report" label="P&L Reports" Icon={BarChart2} />
-              <NavItem id="expenses" label="Accounting" Icon={BookOpen} />
+          
+          {/* Admin Exclusive: Financial Reports */}
+          {isAdmin && (
+            <div>
+              <p className="px-3 text-[0.6rem] font-bold text-gray-600 uppercase tracking-widest mb-2">Financial</p>
+              <div className="space-y-1">
+                <NavItem id="report" label="P&L Reports" Icon={BarChart2} />
+                <NavItem id="expenses" label="Accounting" Icon={BookOpen} />
+              </div>
             </div>
-          </div>
+          )}
         </nav>
 
-        {/* Status Card at bottom */}
+        {/* User Card */}
         <div className="mx-1 mt-6 rounded-[1.25rem] bg-black/40 border border-brand-border/60 p-4 relative overflow-hidden">
-          <div className="absolute -top-6 -right-6 w-20 h-20 bg-brand-gold opacity-5 rounded-full blur-2xl"></div>
-          <div className="flex items-center gap-2 mb-3">
-            <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></div>
-            <span className="text-[10px] text-green-400 font-bold uppercase tracking-widest">Systems Online</span>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl overflow-hidden bg-brand-gold/10 border border-brand-gold/20">
+               <img src={avatarPath} alt="User Avatar" className="w-full h-full object-cover" />
+            </div>
+            <div>
+               <p className="text-xs font-bold text-white">{user}</p>
+               <p className="text-[10px] text-brand-gold uppercase tracking-widest leading-none">{role}</p>
+            </div>
           </div>
-          <p className="text-[10px] text-gray-500 leading-relaxed">Vercel · Render · Atlas active</p>
         </div>
       </aside>
 
@@ -354,19 +329,15 @@ export default function Dashboard() {
           </div>
           
           <div className="flex items-center gap-2 md:gap-4">
-            <div className="hidden md:block">
-              <GlobalSearch onNavigate={setActiveTab} />
-            </div>
-            
             <NotificationPanel onNavigate={setActiveTab} />
             
             <div className="flex items-center gap-2 md:gap-3 ml-2 pl-2 md:pl-4 border-l border-brand-border">
-              <div className="w-8 h-8 md:w-9 md:h-9 rounded-full bg-brand-gold flex items-center justify-center text-black shadow-md shrink-0">
-                <User size={14} />
+              <div className="w-8 h-8 md:w-9 md:h-9 rounded-full overflow-hidden border-2 border-brand-gold/20 shadow-lg shrink-0">
+                 <img src={avatarPath} alt="Avatar" className="w-full h-full object-cover" />
               </div>
               <div className="hidden xs:block">
-                <p className="text-xs md:text-sm font-semibold text-white leading-none">Admin</p>
-                <p className="text-[8px] md:text-[0.6rem] text-brand-gold uppercase tracking-widest mt-0.5">Root</p>
+                <p className="text-xs md:text-sm font-semibold text-white leading-none">{user}</p>
+                <p className="text-[8px] md:text-[0.6rem] text-brand-gold uppercase tracking-widest mt-0.5">{role}</p>
               </div>
             </div>
           </div>
