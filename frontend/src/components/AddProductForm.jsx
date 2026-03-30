@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
+import { X, Package, Upload, Camera } from 'lucide-react';
 
 export default function AddProductForm({ onAdd, onCancel, initialData }) {
   const [formData, setFormData] = useState(initialData || {
@@ -13,12 +14,25 @@ export default function AddProductForm({ onAdd, onCancel, initialData }) {
     max_discount_allowed: 0,
     stockLevel: '',
     min_stock_level: 10,
-    manufacturer: ''
+    manufacturer: '',
+    image_url: ''
   });
+  const fileInputRef = useRef(null);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(f => ({ ...f, [name]: value }));
+  };
+
+  const handleFileUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormData(f => ({ ...f, image_url: reader.result }));
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const handleSubmit = (e) => {
@@ -27,7 +41,6 @@ export default function AddProductForm({ onAdd, onCancel, initialData }) {
       ...formData,
       cost_price: parseFloat(formData.cost_price),
       selling_price: parseFloat(formData.selling_price),
-      // backward compat aliases
       costPrice: parseFloat(formData.cost_price),
       salePrice: parseFloat(formData.selling_price),
       max_discount_allowed: parseFloat(formData.max_discount_allowed) || 0,
@@ -38,30 +51,58 @@ export default function AddProductForm({ onAdd, onCancel, initialData }) {
     onAdd(payload);
   };
 
-
-
   return (
-    <div className="rounded-[1.25rem] border border-brand-border bg-brand-gray p-6 md:p-10 shadow-xl max-w-4xl mx-auto overflow-x-hidden">
-      <header className="mb-6 md:mb-8 flex items-center justify-between">
-        <h3 className="font-serif text-xl text-brand-gold">
-          {initialData ? 'Edit Luxury SKU' : '+ Register New SKU'}
-        </h3>
-        <button type="button" onClick={onCancel} className="text-gray-500 hover:text-white transition-colors">
+    <div className="rounded-[1.25rem] border border-brand-border bg-brand-gray p-6 md:p-10 shadow-xl max-w-4xl mx-auto overflow-x-hidden animate-in fade-in zoom-in-95 duration-300">
+      <header className="mb-8 flex items-center justify-between border-b border-brand-border pb-4">
+        <div className="flex items-center gap-3">
+           <div className="w-10 h-10 rounded-xl bg-brand-gold/10 flex items-center justify-center text-brand-gold border border-brand-gold/20">
+              <Package size={20} />
+           </div>
+           <div>
+              <h3 className="font-serif text-xl text-brand-gold">
+                {initialData ? 'Refine Luxury SKU' : 'Register New Asset'}
+              </h3>
+              <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">Inventory Ledger v2.4</p>
+           </div>
+        </div>
+        <button type="button" onClick={onCancel} className="p-2 rounded-lg hover:bg-white/5 transition-colors text-gray-500 hover:text-white">
           <X size={20} />
         </button>
       </header>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Row 1: Name + SKU */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-          <div className="space-y-2">
-            <label className="text-[10px] uppercase tracking-widest text-gray-400">Product Name</label>
-            <input type="text" name="name" className="form-control" required value={formData.name} onChange={handleChange} placeholder="e.g. Italian Leather Sofa" />
-          </div>
-          <div className="space-y-2">
-            <label className="text-[10px] uppercase tracking-widest text-gray-400">SKU Code</label>
-            <input type="text" name="sku_code" className="form-control" required value={formData.sku_code} onChange={handleChange} placeholder="HEIN-SOFA-001" />
-          </div>
+      <form onSubmit={handleSubmit} className="space-y-8">
+        {/* Asset Recognition (Image) */}
+        <div className="flex flex-col md:flex-row gap-8 items-center">
+           <div className="relative group">
+              <div 
+                onClick={() => fileInputRef.current.click()}
+                className="w-40 h-40 rounded-[2rem] bg-black/40 border-2 border-brand-border overflow-hidden flex items-center justify-center relative cursor-pointer hover:border-brand-gold/50 transition-all shadow-inner"
+              >
+                 {formData.image_url ? (
+                   <img src={formData.image_url} alt="Preview" className="w-full h-full object-cover" />
+                 ) : (
+                   <div className="text-center p-4">
+                      <Camera size={24} className="mx-auto mb-2 text-gray-600" />
+                      <p className="text-[8px] uppercase tracking-widest text-gray-500 font-bold">Capture Asset</p>
+                   </div>
+                 )}
+                 <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <Upload size={24} className="text-white" />
+                 </div>
+              </div>
+              <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleFileUpload} />
+           </div>
+
+           <div className="flex-1 w-full grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <label className="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Asset Nomenclature</label>
+                <input type="text" name="name" className="form-control" required value={formData.name} onChange={handleChange} placeholder="e.g. Italian Leather Sofa" />
+              </div>
+              <div className="space-y-2">
+                <label className="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Unique SKU Identity</label>
+                <input type="text" name="sku_code" className="form-control font-mono" required value={formData.sku_code} onChange={handleChange} placeholder="HEIN-XXXX-001" />
+              </div>
+           </div>
         </div>
 
         {/* Row 2: Category + Collection */}

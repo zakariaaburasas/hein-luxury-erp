@@ -3,7 +3,7 @@ import AddProductForm from './AddProductForm';
 import { AlertTriangle, Edit3, Trash2 } from 'lucide-react';
 import API_URL from '../api/config';
 
-export default function InventoryView({ searchQuery }) {
+export default function InventoryView({ searchQuery, userId }) {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
@@ -28,10 +28,13 @@ export default function InventoryView({ searchQuery }) {
       const url = isEdit ? `${API_URL}/api/products/${editingProduct._id}` : `${API_URL}/api/products`;
       const method = isEdit ? 'PUT' : 'POST';
 
+      const payload = { ...productData };
+      if (!isEdit) payload.createdBy = userId; // Track who added it
+
       const res = await fetch(url, {
         method: method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(productData)
+        body: JSON.stringify(payload)
       });
       if (res.ok) {
         const savedDoc = await res.json();

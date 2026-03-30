@@ -248,14 +248,14 @@ export default function Dashboard({ user: initialUser, role, userId }) {
     if (isStaff && (activeTab === 'report' || activeTab === 'expenses')) return <OverviewContent />;
     
     switch (activeTab) {
-      case 'inventory':    return <InventoryView searchQuery={searchQuery} />;
+      case 'inventory':    return <InventoryView userId={userId} searchQuery={searchQuery} />;
       case 'transactions': return <SalesView searchQuery={searchQuery} userId={userId} />;
       case 'consumer':     return <CRMView searchQuery={searchQuery} />;
       case 'report':       return <FinanceView />;
       case 'expenses':     return <AccountingView />;
       case 'production':   return <ProductionView />;
       case 'team':         return <TeamView />;
-      case 'profile':      return <ProfileView currentName={displayName} currentAvatar={avatarPath} onSave={handleProfileSave} />;
+      case 'profile':      return <ProfileView userId={userId} currentName={displayName} currentAvatar={avatarPath} onSave={handleProfileSave} />;
       case 'dashboard':
       default:             return <OverviewContent />;
     }
