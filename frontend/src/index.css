@@ -1,0 +1,28 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand-gold: #D4AF37;
+  --color-brand-gold-hover: #E5C359;
+  --color-brand-black: #0a0a0a;
+  --color-brand-gray: #141414;
+  --color-brand-border: #27272a;
+  
+  --font-serif: "Playfair Display", serif;
+  --font-sans: "Inter", sans-serif;
+}
+
+@layer base {
+  body {
+    @apply bg-brand-black text-white font-sans antialiased;
+  }
+}
+
+@layer components {
+  .btn-gold {
+    @apply bg-transparent text-brand-gold border border-brand-gold px-6 py-3 font-sans text-sm font-medium tracking-widest uppercase transition-all duration-300 hover:bg-brand-gold hover:text-brand-black hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(212,175,55,0.2)];
+  }
+  
+  .form-control {
+    @apply w-full bg-brand-black border border-brand-border text-white px-4 py-3 font-sans transition-all duration-300 rounded focus:outline-none focus:border-brand-gold focus:ring-1 focus:ring-brand-gold;
+  }
+}

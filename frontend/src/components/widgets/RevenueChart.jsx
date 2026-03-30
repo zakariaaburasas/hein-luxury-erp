@@ -1,0 +1,69 @@
+import React from 'react';
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer
+} from 'recharts';
+
+const CustomTooltip = ({ active, payload, label }) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-brand-black border border-brand-gold/30 rounded-lg p-3 shadow-xl">
+        <p className="text-brand-gold text-xs font-bold uppercase tracking-widest">{label}</p>
+        <p className="text-white font-serif text-lg mt-1">${payload[0].value.toLocaleString()}</p>
+      </div>
+    );
+  }
+  return null;
+};
+
+export default function RevenueChart({ data }) {
+  if (!data || data.length === 0) {
+    return (
+      <div className="rounded-[1.25rem] bg-brand-gray border border-brand-border p-6 shadow-lg h-full flex flex-col justify-center items-center">
+        <p className="text-gray-500 text-sm font-mono">No revenue data yet. Log your first sale to see growth.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="rounded-[1.25rem] bg-brand-gray border border-brand-border p-6 shadow-lg h-full flex flex-col">
+      <div className="flex justify-between items-start mb-6">
+        <div>
+          <h3 className="text-lg font-serif tracking-wide text-white">Revenue Growth</h3>
+          <p className="text-xs text-gray-400 mt-1">Monthly sales performance</p>
+        </div>
+        <span className="text-xs bg-brand-gold/10 border border-brand-gold/30 text-brand-gold px-3 py-1 rounded-full font-mono">LIVE</span>
+      </div>
+      <div className="flex-1 min-h-[200px]">
+        <ResponsiveContainer width="100%" height="100%">
+          <AreaChart data={data} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
+            <defs>
+              <linearGradient id="goldGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#D4AF37" stopOpacity={0.3} />
+                <stop offset="95%" stopColor="#D4AF37" stopOpacity={0} />
+              </linearGradient>
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} />
+            <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fill: '#6b7280', fontSize: 12 }} dy={10} />
+            <YAxis axisLine={false} tickLine={false} tick={{ fill: '#6b7280', fontSize: 12 }} tickFormatter={v => `$${v}`} />
+            <Tooltip content={<CustomTooltip />} />
+            <Area
+              type="monotone"
+              dataKey="revenue"
+              stroke="#D4AF37"
+              strokeWidth={2}
+              fill="url(#goldGrad)"
+              dot={{ fill: '#D4AF37', strokeWidth: 0, r: 4 }}
+              activeDot={{ r: 6, fill: '#D4AF37', stroke: '#0a0a0a', strokeWidth: 2 }}
+            />
+          </AreaChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
+  );
+}
