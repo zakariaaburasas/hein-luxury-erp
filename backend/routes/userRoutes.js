@@ -34,10 +34,15 @@ router.get('/:id', async (req, res) => {
 
 router.put('/:id', async (req, res) => {
   try {
-    const { name, avatar, email, phone } = req.body;
+    const { name, avatar, email, phone, password, status, role } = req.body;
+    const updateFields = { name, avatar, email, phone, status, role };
+    // Only update password if a non-empty value is provided
+    if (password && password.trim() !== '') {
+      updateFields.password = password.trim();
+    }
     const user = await User.findByIdAndUpdate(
       req.params.id, 
-      { $set: { name, avatar, email, phone } },
+      { $set: updateFields },
       { new: true, select: '-password' }
     );
     if (!user) return res.status(404).json({ message: 'User not found.' });
