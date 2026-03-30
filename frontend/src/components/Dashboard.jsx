@@ -321,7 +321,7 @@ export default function Dashboard() {
       {/* ─── Main Content ─────────────────────────────── */}
       <main className="flex-1 flex flex-col overflow-hidden">
         {/* Top Bar */}
-        <header className="shrink-0 flex items-center justify-between px-10 py-6 border-b border-brand-border bg-brand-black/80 backdrop-blur-sm">
+        <header className="shrink-0 flex items-center justify-between px-10 py-6 border-b border-brand-border bg-brand-black/80 backdrop-blur-sm relative z-50">
           <div>
             <h2 className="font-serif text-xl font-semibold text-white capitalize tracking-wide">
               {activeTab === 'dashboard' ? 'Intelligence Overview' :

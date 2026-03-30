@@ -144,7 +144,7 @@ export default function NotificationPanel({ onNavigate }) {
 
       {/* Dropdown Panel */}
       {open && (
-        <div className="absolute top-full right-0 mt-2 w-[400px] rounded-[1rem] border border-brand-border bg-brand-black/95 backdrop-blur-md shadow-2xl z-50 overflow-hidden">
+        <div className="absolute top-full right-0 mt-2 w-[400px] rounded-[1rem] border border-brand-border bg-brand-black/95 backdrop-blur-md shadow-2xl z-[100] overflow-hidden">
           {/* Header */}
           <div className="flex items-center justify-between px-5 py-4 border-b border-brand-border/60">
             <div>
