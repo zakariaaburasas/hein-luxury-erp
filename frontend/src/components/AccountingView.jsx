@@ -364,7 +364,7 @@ function PLTab({ expenses, sales }) {
       <div className="grid grid-cols-4 gap-5">
         <KPICard label="Total Revenue" value={`$${totalRevenue.toLocaleString()}`} color="green" sub={`${sales.length} transactions`} />
         <KPICard label="Total Expenses" value={`$${totalExpenses.toLocaleString()}`} color="red" sub={`${expenses.length} entries`} />
-        <KPICard label="Net Profit" value={`$${netProfit.toLocaleString()}`} color={netProfit >= 0 ? 'gold' : 'red'} sub="Revenue − COGS − Expenses" />
+        <KPICard label="Net Profit" value={`$${netProfit.toLocaleString()}`} color={netProfit >= 0 ? 'gold' : 'red'} sub="Revenue − Inventory Costs − Expenses" />
         <KPICard label="Net Margin %" value={`${margin.toFixed(1)}%`} color={margin >= 0 ? 'green' : 'red'} sub="Net Profit / Revenue" />
       </div>
 
@@ -374,7 +374,7 @@ function PLTab({ expenses, sales }) {
           <h4 className="font-serif text-base text-white">P&L Breakdown</h4>
           {[
             { label: 'Gross Revenue', value: totalRevenue, color: 'text-green-400' },
-            { label: 'Cost of Goods Sold (COGS)', value: -totalCOGS, color: 'text-red-400' },
+            { label: 'Inventory Costs', value: -totalCOGS, color: 'text-red-400' },
             { label: 'Gross Profit', value: grossProfit, color: 'text-brand-gold', divider: true },
             { label: 'Operating Expenses', value: -totalExpenses, color: 'text-red-400' },
             { label: 'Net Profit', value: netProfit, color: netProfit >= 0 ? 'text-green-400' : 'text-red-400', divider: true, bold: true },

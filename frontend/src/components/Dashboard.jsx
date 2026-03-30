@@ -184,7 +184,7 @@ export default function Dashboard({ user: initialUser, role, userId, onLogout })
         {isAdmin && (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-5">
               <StatCard title="Total Revenue" value={`$${finance.totalRevenue.toLocaleString()}`} subtitle={`${finance.totalSalesVolume} transactions`} trend={finance.totalRevenue > 0 ? 12.4 : undefined} isPrimary icon={DollarSign} />
-              <StatCard title="Gross Profit" value={`$${finance.grossProfit.toLocaleString()}`} subtitle="Revenue minus COGS" icon={TrendingUp} />
+              <StatCard title="Gross Profit" value={`$${finance.grossProfit.toLocaleString()}`} subtitle="Revenue minus Inventory Costs" icon={TrendingUp} />
               <StatCard title="Total Expenses" value={`$${finance.totalExpenses.toLocaleString()}`} subtitle="Ads, Shipping, Materials" isNegative icon={Receipt} />
               <StatCard title="Net Profit" value={`$${finance.netProfit.toLocaleString()}`} subtitle="Gross Profit minus Expenses" trend={finance.netProfit >= 0 ? 8.2 : -5.1} icon={BarChart2} />
               <StatCard title="Manufacturing POs" value={activeProduction} subtitle="Active production cycles" trend={activeProduction > 0 ? 5 : 0} icon={Factory} />

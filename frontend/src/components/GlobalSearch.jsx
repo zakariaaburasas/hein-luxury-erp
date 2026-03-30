@@ -82,11 +82,11 @@ export default function GlobalSearch({ onNavigate }) {
         <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-brand-gold transition-colors pointer-events-none" />
         <input
           type="text"
-          placeholder="Search records..."
+          placeholder="Search products, SKUs, clients..."
           value={query}
           onChange={e => { setQuery(e.target.value); setOpen(true); }}
           onFocus={() => setOpen(true)}
-          className="bg-brand-gray border border-brand-border rounded-full pl-9 pr-8 py-2 text-xs w-full sm:w-72 focus:outline-none focus:border-brand-gold/50 sm:focus:w-96 transition-all duration-300 text-white placeholder:text-gray-600 shadow-inner"
+          className="bg-brand-gray border border-brand-border rounded-full pl-9 pr-8 py-2 text-xs w-full sm:w-72 focus:outline-none focus:border-brand-gold/50 sm:focus:w-96 transition-all duration-300 text-white placeholder:text-gray-500 shadow-inner"
         />
         {query && (
           <button onClick={() => { setQuery(''); setOpen(false); }}
@@ -104,7 +104,7 @@ export default function GlobalSearch({ onNavigate }) {
 
       {/* Results Dropdown */}
       {open && query && loaded && (
-        <div className="absolute top-full right-0 mt-2 w-screen sm:w-[520px] max-w-[calc(100vw-2rem)] rounded-[1rem] border border-brand-border bg-brand-black/95 backdrop-blur-md shadow-2xl z-[100] overflow-hidden translate-x-12 sm:translate-x-0">
+        <div className="absolute top-full -right-4 sm:right-0 mt-2 w-[calc(100vw-2rem)] sm:w-[520px] max-w-[520px] rounded-[1rem] border border-brand-border bg-brand-black/95 backdrop-blur-xl shadow-2xl z-[100] overflow-hidden">
           {!hasResults ? (
             <div className="px-5 py-6 text-center">
               <p className="text-gray-500 text-xs font-mono">No results for "{query}"</p>

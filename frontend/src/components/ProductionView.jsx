@@ -112,7 +112,7 @@ export default function ProductionView() {
 
       {showForm ? (
         <div className="rounded-[1.25rem] border border-brand-border bg-brand-gray p-6 md:p-10 shadow-xl max-w-4xl mx-auto">
-          <h3 className="mb-6 md:mb-8 font-serif text-xl text-brand-gold">New Production Requisition</h3>
+          <h3 className="mb-6 md:mb-8 font-serif text-xl text-brand-gold">New Production Order</h3>
           <form onSubmit={handleAddOrder} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
               <div className="space-y-2">
@@ -137,7 +137,7 @@ export default function ProductionView() {
               </div>
             </div>
             <div className="flex flex-col sm:flex-row gap-4 pt-6 border-t border-brand-border/40">
-              <button type="submit" className="btn-gold flex-1 order-1 sm:order-2 py-4">Issue PO Requisition</button>
+              <button type="submit" className="btn-gold flex-1 order-1 sm:order-2 py-4">Issue Production Order</button>
               <button type="button" className="p-3 px-8 text-gray-500 hover:text-white transition-colors order-2 sm:order-1 text-center" onClick={() => setShowForm(false)}>Cancel</button>
             </div>
           </form>

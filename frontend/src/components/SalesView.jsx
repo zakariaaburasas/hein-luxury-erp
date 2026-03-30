@@ -262,7 +262,7 @@ export default function SalesView({ searchQuery, userId }) {
                 <input type="number" min="1" className="form-control" value={formData.quantitySold} onChange={e => setFormData(f => ({ ...f, quantitySold: parseInt(e.target.value) || 1 }))} required />
               </div>
               <div className="space-y-1">
-                <label className="text-[10px] uppercase tracking-widest text-txt-muted font-bold">Adjustment ($)</label>
+                <label className="text-[10px] uppercase tracking-widest text-txt-muted font-bold">Discount ($)</label>
                 <input type="number" min="0" className="form-control" value={formData.discountAmount} onChange={e => setFormData(f => ({ ...f, discountAmount: e.target.value }))} />
               </div>
               <div className="space-y-1">

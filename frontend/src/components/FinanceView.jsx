@@ -25,7 +25,7 @@ export default function FinanceView() {
         if (mRes.ok) setMonthlyData(await mRes.json());
         if (fRes.ok) setMetrics(await fRes.json());
       } catch (error) {
-        console.error('Economic telemetry failure:', error);
+        console.error('Finance data loading error:', error);
       } finally {
         setLoading(false);
       }
@@ -95,7 +95,7 @@ export default function FinanceView() {
              <div className="absolute right-0 top-0 p-4 text-txt-main/5 group-hover:text-red-400/10 transition-colors">
                 <PieChart size={80} />
             </div>
-          <p className="text-[0.6rem] uppercase tracking-widest text-txt-muted font-bold mb-4">Cost breakdown (COGS + OPEX)</p>
+          <p className="text-[0.6rem] uppercase tracking-widest text-txt-muted font-bold mb-4">Total Costs (Inventory + Expenses)</p>
           <h3 className="font-serif text-3xl text-red-500 dark:text-red-400 font-bold">-${(metrics.totalCOGS + metrics.totalExpenses).toLocaleString()}</h3>
           <p className="text-[0.65rem] text-txt-muted mt-2">Inventory + Operations</p>
         </div>
@@ -124,15 +124,15 @@ export default function FinanceView() {
         {/* Trend Table */}
         <div className="col-span-8 rounded-[1.25rem] border border-brand-border bg-brand-gray shadow-xl overflow-hidden">
             <div className="p-6 border-b border-brand-border flex justify-between items-center">
-                <h3 className="font-serif text-lg text-white">Monthly Liquidity Pipeline</h3>
+                <h3 className="font-serif text-lg text-white">Monthly Sales Pipeline</h3>
                 <BarChart2 size={16} className="text-gray-500" />
             </div>
             <table className="w-full text-left text-sm">
                 <thead className="bg-black/30 text-[0.6rem] uppercase tracking-widest text-brand-gold">
                     <tr>
                         <th className="px-6 py-4 font-medium">Accounting Period</th>
-                        <th className="px-6 py-4 font-medium">Requisition Cycle</th>
-                        <th className="px-6 py-4 font-medium">Traded Value</th>
+                        <th className="px-6 py-4 font-medium">Total Orders</th>
+                        <th className="px-6 py-4 font-medium">Total Sales</th>
                         <th className="px-6 py-4 font-medium text-right">Status</th>
                     </tr>
                 </thead>
