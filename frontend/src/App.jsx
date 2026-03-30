@@ -3,7 +3,11 @@ import Dashboard from './components/Dashboard';
 import API_URL from './api/config';
 
 function App() {
-  const [auth, setAuth] = useState({ isAuthenticated: false, user: null, role: null });
+  const [auth, setAuth] = useState(() => {
+    const saved = localStorage.getItem('hein_auth');
+    return saved ? JSON.parse(saved) : { isAuthenticated: false, user: null, role: null, id: null };
+  });
+
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -28,12 +32,14 @@ function App() {
 
       const data = await response.json();
       if (data.success) {
-        setAuth({ 
+        const authData = { 
           isAuthenticated: true, 
           user: data.user.name, 
           role: data.user.role,
           id: data.user.id
-        });
+        };
+        setAuth(authData);
+        localStorage.setItem('hein_auth', JSON.stringify(authData));
       } else {
         setError(data.message || 'Invalid Credentials');
       }
@@ -42,6 +48,12 @@ function App() {
     } finally {
       setIsLoggingIn(false);
     }
+  };
+
+  const handleLogout = () => {
+    setAuth({ isAuthenticated: false, user: null, role: null, id: null });
+    localStorage.removeItem('hein_auth');
+    window.location.reload(); // Refresh to ensure clean state
   };
 
   if (!auth.isAuthenticated) {
@@ -92,7 +104,7 @@ function App() {
     );
   }
 
-  return <Dashboard user={auth.user} role={auth.role} userId={auth.id} />;
+  return <Dashboard user={auth.user} role={auth.role} userId={auth.id} onLogout={handleLogout} />;
 }
 
 export default App;

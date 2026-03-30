@@ -4,7 +4,7 @@ import {
   LayoutDashboard, Package, CreditCard, Users, BarChart2,
   Receipt, Search, Bell, User, TrendingUp, TrendingDown,
   DollarSign, ShoppingBag, AlertTriangle, ArrowUpRight, ArrowDownRight, Factory, BookOpen, Shield,
-  Sun, Moon
+  Sun, Moon, LogOut
 } from 'lucide-react';
 
 // Subviews
@@ -56,7 +56,7 @@ function StatCard({ title, value, subtitle, trend, isPrimary, isNegative, icon: 
 }
 
 // ─── Main Dashboard ──────────────────────────────────────
-export default function Dashboard({ user: initialUser, role, userId }) {
+export default function Dashboard({ user: initialUser, role, userId, onLogout }) {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [searchQuery, setSearchQuery] = useState('');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -332,15 +332,22 @@ export default function Dashboard({ user: initialUser, role, userId }) {
           </div>
         </nav>
 
-        <div onClick={() => setActiveTab('profile')} className="mx-1 mt-6 rounded-[1.25rem] bg-bg-card/50 border border-brand-border/60 p-4 relative overflow-hidden cursor-pointer hover:bg-bg-card transition-all shadow-sm">
+        <div className="mx-1 mt-6 rounded-[1.25rem] bg-bg-card/50 border border-brand-border/60 p-4 relative overflow-hidden transition-all shadow-sm">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl overflow-hidden bg-brand-gold/10 border border-brand-gold/20">
+            <div className="w-10 h-10 rounded-xl overflow-hidden bg-brand-gold/10 border border-brand-gold/20 flex-shrink-0">
                <img src={avatarPath} alt="User Avatar" className="w-full h-full object-cover" />
             </div>
             <div className="flex-1 min-w-0">
                <p className="text-xs font-bold text-txt-main truncate">{displayName}</p>
                <p className="text-[10px] text-brand-gold uppercase tracking-widest leading-none font-bold">{role}</p>
             </div>
+            <button 
+              onClick={onLogout}
+              className="p-2 ml-auto text-gray-500 hover:text-red-500 transition-colors"
+              title="Sign Out"
+            >
+              <LogOut size={16} />
+            </button>
           </div>
         </div>
       </aside>
