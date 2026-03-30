@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import AddProductForm from './AddProductForm';
 import { AlertTriangle, Edit3, Trash2 } from 'lucide-react';
+import API_URL from '../api/config';
 
 export default function InventoryView({ searchQuery }) {
   const [products, setProducts] = useState([]);
@@ -12,7 +13,7 @@ export default function InventoryView({ searchQuery }) {
 
   const fetchProducts = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/products');
+      const response = await fetch(`${API_URL}/api/products`);
       if (response.ok) setProducts(await response.json());
     } catch (error) {
       console.error('Failed fetching products:', error);
@@ -24,7 +25,7 @@ export default function InventoryView({ searchQuery }) {
   const handleAddProduct = async (productData) => {
     try {
       const isEdit = !!editingProduct;
-      const url = isEdit ? `http://localhost:5000/api/products/${editingProduct._id}` : 'http://localhost:5000/api/products';
+      const url = isEdit ? `${API_URL}/api/products/${editingProduct._id}` : `${API_URL}/api/products`;
       const method = isEdit ? 'PUT' : 'POST';
 
       const res = await fetch(url, {
@@ -50,7 +51,7 @@ export default function InventoryView({ searchQuery }) {
   const handleDeleteProduct = async (id) => {
     if (!window.confirm('Are you sure you want to delete this SKU forever?')) return;
     try {
-      const res = await fetch(`http://localhost:5000/api/products/${id}`, { method: 'DELETE' });
+      const res = await fetch(`${API_URL}/api/products/${id}`, { method: 'DELETE' });
       if (res.ok) {
         setProducts(prev => prev.filter(p => p._id !== id));
       }

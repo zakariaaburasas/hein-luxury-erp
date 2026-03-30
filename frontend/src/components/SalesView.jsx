@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, CheckCircle, AlertTriangle, Trash2, RotateCcw } from 'lucide-react';
+import API_URL from '../api/config';
 
 // Toast notification component
 export function Toast({ toast, onClose }) {
@@ -55,9 +56,9 @@ export default function SalesView({ searchQuery }) {
   const fetchAll = async () => {
     try {
       const [sRes, pRes, cRes] = await Promise.all([
-        fetch('http://localhost:5000/api/sales'),
-        fetch('http://localhost:5000/api/products'),
-        fetch('http://localhost:5000/api/customers')
+        fetch(`${API_URL}/api/sales`),
+        fetch(`${API_URL}/api/products`),
+        fetch(`${API_URL}/api/customers`)
       ]);
       if (sRes.ok) setSales(await sRes.json());
       if (pRes.ok) setProducts(await pRes.json());
@@ -88,7 +89,7 @@ export default function SalesView({ searchQuery }) {
     setSubmitting(true);
 
     try {
-      const res = await fetch('http://localhost:5000/api/sales', {
+      const res = await fetch(`${API_URL}/api/sales`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...formData, revenue })
@@ -117,10 +118,10 @@ export default function SalesView({ searchQuery }) {
         }
 
         setShowForm(false);
-        setFormData({ product: '', customer: '', customerName: '', customerPhone: '', quantitySold: 1, discountAmount: 0, status: 'Paid ', payment_method: 'Zaad' });
+        setFormData({ product: '', customer: '', customerName: '', customerPhone: '', addToVip: false, quantitySold: 1, discountAmount: 0, status: 'Paid ', payment_method: 'Zaad' });
         setSelectedProduct(null);
         // Fetch customers to update dropdown if a new one was auto-created
-        const cRes = await fetch('http://localhost:5000/api/customers');
+        const cRes = await fetch(`${API_URL}/api/customers`);
         if (cRes.ok) setCustomers(await cRes.json());
       } else {
         setToast({ type: 'alert', message: data.message || 'Sale failed.' });
@@ -135,11 +136,11 @@ export default function SalesView({ searchQuery }) {
   const voidSale = async (id) => {
     if (!window.confirm('Void this transaction? The items will be returned to inventory.')) return;
     try {
-      const res = await fetch(`http://localhost:5000/api/sales/${id}`, { method: 'DELETE' });
+      const res = await fetch(`${API_URL}/api/sales/${id}`, { method: 'DELETE' });
       if (res.ok) {
         setSales(prev => prev.filter(s => s._id !== id));
         setToast({ type: 'success', message: 'Transaction voided and stock restored.' });
-        const pRes = await fetch('http://localhost:5000/api/products');
+        const pRes = await fetch(`${API_URL}/api/products`);
         if (pRes.ok) setProducts(await pRes.json());
       }
     } catch (error) {
@@ -151,7 +152,7 @@ export default function SalesView({ searchQuery }) {
     if (!window.confirm(`Mark this sale as Refunded? Stock will be restored to inventory.`)) return;
     try {
       // 1. Update status to Refunded
-      const res = await fetch(`http://localhost:5000/api/sales/${sale._id}/status`, {
+      const res = await fetch(`${API_URL}/api/sales/${sale._id}/status`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: 'Refunded' })
@@ -160,13 +161,13 @@ export default function SalesView({ searchQuery }) {
         const updated = await res.json();
         setSales(prev => prev.map(s => s._id === updated._id ? { ...s, status: 'Refunded' } : s));
         // 2. Restore stock
-        await fetch(`http://localhost:5000/api/products/${sale.product?._id}`, {
+        await fetch(`${API_URL}/api/products/${sale.product?._id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ stockLevel: (sale.product?.stockLevel || 0) + (sale.quantitySold || 0) })
         });
         setToast({ type: 'success', message: `Refund recorded. Stock restored for ${sale.product?.name}.` });
-        const pRes = await fetch('http://localhost:5000/api/products');
+        const pRes = await fetch(`${API_URL}/api/products`);
         if (pRes.ok) setProducts(await pRes.json());
       }
     } catch (error) {

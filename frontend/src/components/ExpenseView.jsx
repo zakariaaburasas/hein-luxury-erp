@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import API_URL from '../api/config';
 
 const CATEGORY_COLORS = {
   'Advertising': '#D4AF37',
@@ -31,8 +32,8 @@ export default function ExpenseView() {
   const fetchAll = async () => {
     try {
       const [eRes, sRes] = await Promise.all([
-        fetch('http://localhost:5000/api/expenses'),
-        fetch('http://localhost:5000/api/expenses/summary')
+        fetch(`${API_URL}/api/expenses`),
+        fetch(`${API_URL}/api/expenses/summary`)
       ]);
       if (eRes.ok) setExpenses(await eRes.json());
       if (sRes.ok) setSummary(await sRes.json());
@@ -43,7 +44,7 @@ export default function ExpenseView() {
     e.preventDefault();
     setSubmitting(true);
     try {
-      const res = await fetch('http://localhost:5000/api/expenses', {
+      const res = await fetch(`${API_URL}/api/expenses`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...formData, amount: parseFloat(formData.amount) })

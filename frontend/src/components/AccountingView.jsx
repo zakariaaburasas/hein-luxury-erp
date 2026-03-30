@@ -4,6 +4,7 @@ import {
   ResponsiveContainer, PieChart, Pie, Cell, Legend
 } from 'recharts';
 import { TrendingUp, TrendingDown, Minus, Plus, BookOpen, FileText, BarChart2, Download } from 'lucide-react';
+import API_URL from '../api/config';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const CATEGORY_COLORS = {
@@ -187,7 +188,7 @@ function ExpensesTab({ expenses, onAdd }) {
     evt.preventDefault();
     setSubmitting(true);
     try {
-      const res = await fetch('http://localhost:5000/api/expenses', {
+      const res = await fetch(`${API_URL}/api/expenses`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...formData, amount: parseFloat(formData.amount) })
       });
@@ -428,8 +429,8 @@ export default function AccountingView() {
 
   useEffect(() => {
     Promise.all([
-      fetch('http://localhost:5000/api/expenses').then(r => r.json()),
-      fetch('http://localhost:5000/api/sales').then(r => r.json())
+      fetch(`${API_URL}/api/expenses`).then(r => r.json()),
+      fetch(`${API_URL}/api/sales`).then(r => r.json())
     ]).then(([e, s]) => {
       setExpenses(Array.isArray(e) ? e : []);
       setSales(Array.isArray(s) ? s : []);

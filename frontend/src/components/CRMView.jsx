@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { User, Phone, MapPin, Award, Trash2, Edit3, Plus, ChevronDown, ChevronUp, ShoppingBag, Calendar } from 'lucide-react';
+import API_URL from '../api/config';
 
 const VIP_COLORS = {
   'Bronze': 'text-amber-600 border-amber-600/30 bg-amber-600/10',
@@ -30,8 +31,8 @@ export default function CRMView({ searchQuery }) {
   const fetchAll = async () => {
     try {
       const [cRes, sRes] = await Promise.all([
-        fetch('http://localhost:5000/api/customers'),
-        fetch('http://localhost:5000/api/sales')
+        fetch(`${API_URL}/api/customers`),
+        fetch(`${API_URL}/api/sales`)
       ]);
       if (cRes.ok) setCustomers(await cRes.json());
       if (sRes.ok) setSales(await sRes.json());
@@ -53,8 +54,8 @@ export default function CRMView({ searchQuery }) {
     e.preventDefault();
     const isEdit = !!editingCustomer;
     const url = isEdit
-      ? `http://localhost:5000/api/customers/${editingCustomer._id}`
-      : 'http://localhost:5000/api/customers';
+      ? `${API_URL}/api/customers/${editingCustomer._id}`
+      : `${API_URL}/api/customers`;
     try {
       const res = await fetch(url, {
         method: isEdit ? 'PUT' : 'POST',
@@ -74,7 +75,7 @@ export default function CRMView({ searchQuery }) {
   const deleteCustomer = async (id) => {
     if (!window.confirm('Delete this client record permanently?')) return;
     try {
-      const res = await fetch(`http://localhost:5000/api/customers/${id}`, { method: 'DELETE' });
+      const res = await fetch(`${API_URL}/api/customers/${id}`, { method: 'DELETE' });
       if (res.ok) setCustomers(prev => prev.filter(c => c._id !== id));
     } catch (e) { console.error(e); }
   };

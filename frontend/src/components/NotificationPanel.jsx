@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Bell, AlertTriangle, RotateCcw, CreditCard, Star, X, CheckCheck, Package } from 'lucide-react';
+import API_URL from '../api/config';
 
 const TYPE_CONFIG = {
   low_stock:  { Icon: Package,       color: 'text-amber-400',  bg: 'bg-amber-400/10',  border: 'border-amber-400/20',  label: 'Low Stock'    },
@@ -35,9 +36,9 @@ export default function NotificationPanel({ onNavigate }) {
     async function load() {
       try {
         const [sRes, pRes, cRes] = await Promise.all([
-          fetch('http://localhost:5000/api/sales'),
-          fetch('http://localhost:5000/api/products'),
-          fetch('http://localhost:5000/api/customers'),
+          fetch(`${API_URL}/api/sales`),
+          fetch(`${API_URL}/api/products`),
+          fetch(`${API_URL}/api/customers`),
         ]);
         const sales    = sRes.ok    ? await sRes.json()    : [];
         const products = pRes.ok    ? await pRes.json()    : [];

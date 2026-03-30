@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Search, X, ShoppingBag, Package, User, Tag } from 'lucide-react';
+import API_URL from '../api/config';
 
 const STATUS_COLORS = {
   paid: 'text-green-400',
@@ -26,9 +27,9 @@ export default function GlobalSearch({ onNavigate }) {
   // Load all data once on mount
   useEffect(() => {
     Promise.all([
-      fetch('http://localhost:5000/api/sales').then(r => r.json()),
-      fetch('http://localhost:5000/api/products').then(r => r.json()),
-      fetch('http://localhost:5000/api/customers').then(r => r.json()),
+      fetch(`${API_URL}/api/sales`).then(r => r.json()),
+      fetch(`${API_URL}/api/products`).then(r => r.json()),
+      fetch(`${API_URL}/api/customers`).then(r => r.json()),
     ]).then(([s, p, c]) => {
       setSales(Array.isArray(s) ? s : []);
       setProducts(Array.isArray(p) ? p : []);

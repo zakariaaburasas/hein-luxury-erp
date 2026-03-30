@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import API_URL from '../api/config';
 import {
   LayoutDashboard, Package, CreditCard, Users, BarChart2,
   Receipt, Search, Bell, User, TrendingUp, TrendingDown,
@@ -70,13 +71,13 @@ export default function Dashboard() {
     setLoading(true);
     try {
       const [finRes, monthRes, alertRes, salesRes, custRes, prodRes, shipyardRes] = await Promise.all([
-        fetch('http://localhost:5000/api/finance/profit-loss'),
-        fetch('http://localhost:5000/api/finance/monthly'),
-        fetch('http://localhost:5000/api/sales/low-stock'),
-        fetch('http://localhost:5000/api/sales'),
-        fetch('http://localhost:5000/api/customers'),
-        fetch('http://localhost:5000/api/products'),
-        fetch('http://localhost:5000/api/production')
+        fetch(`${API_URL}/api/finance/profit-loss`),
+        fetch(`${API_URL}/api/finance/monthly`),
+        fetch(`${API_URL}/api/sales/low-stock`),
+        fetch(`${API_URL}/api/sales`),
+        fetch(`${API_URL}/api/customers`),
+        fetch(`${API_URL}/api/products`),
+        fetch(`${API_URL}/api/production`)
       ]);
 
       if (finRes.ok) setFinance(await finRes.json());

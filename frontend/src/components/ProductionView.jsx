@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Factory, Truck, CheckCircle, Clock, Plus, Trash2, ChevronRight } from 'lucide-react';
+import API_URL from '../api/config';
 
 export default function ProductionView() {
   const [orders, setOrders] = useState([]);
@@ -20,7 +21,7 @@ export default function ProductionView() {
 
   const fetchOrders = async () => {
     try {
-      const res = await fetch('http://localhost:5000/api/production');
+      const res = await fetch(`${API_URL}/api/production`);
       if (res.ok) setOrders(await res.json());
     } catch (e) {
       console.error('Production link failed:', e);
@@ -32,7 +33,7 @@ export default function ProductionView() {
   const handleAddOrder = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch('http://localhost:5000/api/production', {
+      const res = await fetch(`${API_URL}/api/production`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
@@ -50,7 +51,7 @@ export default function ProductionView() {
 
   const updateStatus = async (id, newStatus) => {
     try {
-      const res = await fetch(`http://localhost:5000/api/production/${id}`, {
+      const res = await fetch(`${API_URL}/api/production/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: newStatus })
@@ -67,7 +68,7 @@ export default function ProductionView() {
   const deleteOrder = async (id) => {
     if (!window.confirm('Terminate this manufacturing file?')) return;
     try {
-      const res = await fetch(`http://localhost:5000/api/production/${id}`, { method: 'DELETE' });
+      const res = await fetch(`${API_URL}/api/production/${id}`, { method: 'DELETE' });
       if (res.ok) setOrders(orders.filter(o => o._id !== id));
     } catch (e) {
       console.error('Order deletion failed:', e);

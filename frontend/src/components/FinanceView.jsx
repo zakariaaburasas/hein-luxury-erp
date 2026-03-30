@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { TrendingUp, TrendingDown, DollarSign, PieChart, BarChart2, ArrowRight } from 'lucide-react';
+import API_URL from '../api/config';
 
 export default function FinanceView() {
   const [metrics, setMetrics] = useState({
@@ -18,8 +19,8 @@ export default function FinanceView() {
     const fetchData = async () => {
       try {
         const [mRes, fRes] = await Promise.all([
-          fetch('http://localhost:5000/api/finance/monthly'),
-          fetch('http://localhost:5000/api/finance/profit-loss')
+          fetch(`${API_URL}/api/finance/monthly`),
+          fetch(`${API_URL}/api/finance/profit-loss`)
         ]);
         if (mRes.ok) setMonthlyData(await mRes.json());
         if (fRes.ok) setMetrics(await fRes.json());
