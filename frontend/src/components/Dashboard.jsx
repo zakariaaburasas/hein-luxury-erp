@@ -3,7 +3,8 @@ import API_URL from '../api/config';
 import {
   LayoutDashboard, Package, CreditCard, Users, BarChart2,
   Receipt, Search, Bell, User, TrendingUp, TrendingDown,
-  DollarSign, ShoppingBag, AlertTriangle, ArrowUpRight, ArrowDownRight, Factory, BookOpen
+  DollarSign, ShoppingBag, AlertTriangle, ArrowUpRight, ArrowDownRight, Factory, BookOpen, Shield,
+  Sun, Moon
 } from 'lucide-react';
 
 // Subviews
@@ -16,6 +17,7 @@ import ProductionView from './ProductionView';
 import GlobalSearch from './GlobalSearch';
 import NotificationPanel from './NotificationPanel';
 import ProfileView from './ProfileView';
+import TeamView from './TeamView';
 
 // Widgets
 import RevenueChart from './widgets/RevenueChart';
@@ -27,11 +29,11 @@ function StatCard({ title, value, subtitle, trend, isPrimary, isNegative, icon: 
     <div className={`rounded-[1.25rem] p-6 relative overflow-hidden transition-all duration-300 hover:-translate-y-1 cursor-default ${
       isPrimary
         ? 'bg-gradient-to-br from-brand-gold to-yellow-600 text-brand-black shadow-[0_8px_30px_rgba(212,175,55,0.35)]'
-        : 'bg-brand-gray border border-brand-border text-white shadow-lg'
+        : 'bg-bg-card border border-brand-border text-txt-main shadow-lg'
     }`}>
       {Icon && (
         <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-4 ${
-          isPrimary ? 'bg-black/15 text-brand-black' : 'bg-brand-black text-brand-gold'
+          isPrimary ? 'bg-black/15 text-brand-black' : 'bg-bg-main text-brand-gold border border-brand-border/50'
         }`}>
           <Icon size={20} />
         </div>
@@ -54,7 +56,7 @@ function StatCard({ title, value, subtitle, trend, isPrimary, isNegative, icon: 
 }
 
 // ─── Main Dashboard ──────────────────────────────────────
-export default function Dashboard({ user: initialUser, role }) {
+export default function Dashboard({ user: initialUser, role, userId }) {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [searchQuery, setSearchQuery] = useState('');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -67,9 +69,23 @@ export default function Dashboard({ user: initialUser, role }) {
   const [activeProduction, setActiveProduction] = useState(0);
   const [loading, setLoading] = useState(true);
 
+  // Theme State
+  const [theme, setTheme] = useState(() => localStorage.getItem('hein_theme') || 'dark');
+
   // Profile State
   const [displayName, setDisplayName] = useState(() => localStorage.getItem(`hein_name_${role}`) || initialUser);
   const [avatarPath, setAvatarPath] = useState(() => localStorage.getItem(`hein_avatar_${role}`) || (role === 'admin' ? '/avatars/admin.png' : '/avatars/staff.png'));
+
+  useEffect(() => {
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+    localStorage.setItem('hein_theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => setTheme(prev => prev === 'dark' ? 'light' : 'dark');
 
   const isStaff = role === 'staff';
   const isAdmin = role === 'admin';
@@ -122,8 +138,8 @@ export default function Dashboard({ user: initialUser, role }) {
         onClick={() => setActiveTab(id)}
         className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-full transition-all duration-200 ${
           isActive
-            ? 'bg-brand-gold text-brand-black shadow-[0_4px_14px_rgba(212,175,55,0.35)]'
-            : 'text-gray-400 hover:text-white hover:bg-white/5'
+            ? 'bg-brand-gold text-white dark:text-brand-black shadow-[0_4px_14px_rgba(212,175,55,0.35)]'
+            : 'text-txt-muted hover:text-txt-main hover:bg-white/5'
         }`}
       >
         <Icon size={17} strokeWidth={isActive ? 2.5 : 1.8} />
@@ -164,9 +180,9 @@ export default function Dashboard({ user: initialUser, role }) {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-          <div className="col-span-1 lg:col-span-8 rounded-[1.25rem] bg-brand-gray border border-brand-border p-5 md:p-6 shadow-lg overflow-x-auto">
+          <div className="col-span-1 lg:col-span-8 rounded-[1.25rem] bg-bg-card border border-brand-border p-5 md:p-6 shadow-lg overflow-x-auto">
             <div className="flex justify-between items-center mb-5">
-              <h3 className="font-serif text-base text-white">Recent Transactions</h3>
+              <h3 className="font-serif text-base text-txt-main font-bold">Recent Transactions</h3>
               <button onClick={() => setActiveTab('transactions')} className="text-xs text-brand-gold hover:underline tracking-wide">View All →</button>
             </div>
             {recentSales.length === 0 ? (
@@ -233,11 +249,12 @@ export default function Dashboard({ user: initialUser, role }) {
     
     switch (activeTab) {
       case 'inventory':    return <InventoryView searchQuery={searchQuery} />;
-      case 'transactions': return <SalesView searchQuery={searchQuery} />;
+      case 'transactions': return <SalesView searchQuery={searchQuery} userId={userId} />;
       case 'consumer':     return <CRMView searchQuery={searchQuery} />;
       case 'report':       return <FinanceView />;
       case 'expenses':     return <AccountingView />;
       case 'production':   return <ProductionView />;
+      case 'team':         return <TeamView />;
       case 'profile':      return <ProfileView currentName={displayName} currentAvatar={avatarPath} onSave={handleProfileSave} />;
       case 'dashboard':
       default:             return <OverviewContent />;
@@ -250,7 +267,7 @@ export default function Dashboard({ user: initialUser, role }) {
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] lg:hidden transition-opacity" onClick={() => setIsSidebarOpen(false)} />
       )}
 
-      <aside className={`fixed inset-y-0 left-0 w-[270px] lg:relative lg:flex shrink-0 bg-brand-gray border-r border-brand-border z-[70] transition-transform duration-300 transform ${
+      <aside className={`fixed inset-y-0 left-0 w-[270px] lg:relative lg:flex shrink-0 bg-bg-card border-r border-brand-border z-[70] transition-transform duration-300 transform ${
         isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
       } flex flex-col pt-8 pb-6 px-4`}>
         <div className="flex items-center justify-between px-3 mb-10">
@@ -277,10 +294,11 @@ export default function Dashboard({ user: initialUser, role }) {
           
           {isAdmin && (
             <div>
-              <p className="px-3 text-[0.6rem] font-bold text-gray-600 uppercase tracking-widest mb-2">Financial</p>
+              <p className="px-3 text-[0.6rem] font-bold text-gray-600 dark:text-gray-500 uppercase tracking-widest mb-2">Financial</p>
               <div className="space-y-1">
                 <NavItem id="report" label="P&L Reports" Icon={BarChart2} />
                 <NavItem id="expenses" label="Accounting" Icon={BookOpen} />
+                <NavItem id="team" label="Command Center" Icon={Shield} />
               </div>
             </div>
           )}
@@ -293,27 +311,30 @@ export default function Dashboard({ user: initialUser, role }) {
           </div>
         </nav>
 
-        <div onClick={() => setActiveTab('profile')} className="mx-1 mt-6 rounded-[1.25rem] bg-black/40 border border-brand-border/60 p-4 relative overflow-hidden cursor-pointer hover:bg-black/60 transition-all">
+        <div onClick={() => setActiveTab('profile')} className="mx-1 mt-6 rounded-[1.25rem] bg-bg-card/50 border border-brand-border/60 p-4 relative overflow-hidden cursor-pointer hover:bg-bg-card transition-all shadow-sm">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl overflow-hidden bg-brand-gold/10 border border-brand-gold/20">
                <img src={avatarPath} alt="User Avatar" className="w-full h-full object-cover" />
             </div>
             <div className="flex-1 min-w-0">
-               <p className="text-xs font-bold text-white truncate">{displayName}</p>
-               <p className="text-[10px] text-brand-gold uppercase tracking-widest leading-none">{role}</p>
+               <p className="text-xs font-bold text-txt-main truncate">{displayName}</p>
+               <p className="text-[10px] text-brand-gold uppercase tracking-widest leading-none font-bold">{role}</p>
             </div>
           </div>
         </div>
       </aside>
 
       <main className="flex-1 flex flex-col overflow-hidden w-full">
-        <header className="shrink-0 flex items-center justify-between px-4 md:px-10 py-4 md:py-6 border-b border-brand-border bg-brand-black/80 backdrop-blur-sm relative z-50">
+        <header className="shrink-0 flex items-center justify-between px-4 md:px-10 py-4 md:py-6 border-b border-brand-border bg-bg-card/80 backdrop-blur-sm relative z-50">
           <div className="flex items-center gap-3">
-            <button onClick={() => setIsSidebarOpen(true)} className="lg:hidden p-2 rounded-lg bg-brand-gray border border-brand-border text-brand-gold">
+            <button onClick={() => setIsSidebarOpen(true)} className="lg:hidden p-2 rounded-lg bg-bg-card border border-brand-border text-brand-gold">
               <LayoutDashboard size={20} />
             </button>
+            <div className="hidden md:block w-[220px] lg:w-[280px]">
+              <GlobalSearch />
+            </div>
             <div className="hidden sm:block">
-              <h2 className="font-serif text-sm md:text-xl font-semibold text-white capitalize tracking-wide">
+              <h2 className="font-serif text-sm md:text-xl font-semibold text-txt-main capitalize tracking-wide">
                 {activeTab === 'dashboard' ? 'Intelligence Overview' :
                  activeTab === 'inventory' ? 'Inventory Master' :
                  activeTab === 'transactions' ? 'Point of Sale' :
@@ -321,6 +342,7 @@ export default function Dashboard({ user: initialUser, role }) {
                  activeTab === 'report' ? 'P&L Reports' :
                  activeTab === 'expenses' ? 'Accounting' : 
                  activeTab === 'production' ? 'Purchases' : 
+                 activeTab === 'team' ? 'Command Center' : 
                  activeTab === 'profile' ? 'Profile Signature' : activeTab}
               </h2>
               <p className="text-[10px] text-brand-gold tracking-[0.15em] mt-0.5 uppercase">
@@ -330,13 +352,20 @@ export default function Dashboard({ user: initialUser, role }) {
           </div>
           
           <div className="flex items-center gap-2 md:gap-4">
+            <button 
+              onClick={toggleTheme}
+              className="p-2 rounded-xl bg-bg-card border border-brand-border text-brand-gold hover:bg-brand-gold hover:text-white transition-all shadow-sm"
+              title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`}
+            >
+              {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+            </button>
             <NotificationPanel onNavigate={setActiveTab} />
             <div onClick={() => setActiveTab('profile')} className="flex items-center gap-2 md:gap-3 ml-2 pl-2 md:pl-4 border-l border-brand-border cursor-pointer">
               <div className="w-8 h-8 md:w-9 md:h-9 rounded-full overflow-hidden border-2 border-brand-gold/20 shadow-lg shrink-0">
                  <img src={avatarPath} alt="Avatar" className="w-full h-full object-cover" />
               </div>
               <div className="hidden xs:block">
-                <p className="text-xs md:text-sm font-semibold text-white leading-none">{displayName}</p>
+                <p className="text-xs md:text-sm font-semibold text-txt-main leading-none">{displayName}</p>
                 <p className="text-[8px] md:text-[0.6rem] text-brand-gold uppercase tracking-widest mt-0.5">{role}</p>
               </div>
             </div>

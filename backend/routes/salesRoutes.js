@@ -10,6 +10,7 @@ router.get('/', async (req, res) => {
     const sales = await Sale.find()
       .populate('product')
       .populate('customer')
+      .populate('staff', 'name username role')
       .sort({ createdAt: -1 });
     res.status(200).json(sales);
   } catch (error) {
@@ -20,7 +21,7 @@ router.get('/', async (req, res) => {
 // POST new sale — auto-decrements stock and triggers low stock alert
 router.post('/', async (req, res) => {
   try {
-    const { product, customer, quantitySold, revenue, status, payment_method, notes, customerName, customerPhone } = req.body;
+    const { product, customer, quantitySold, revenue, status, payment_method, notes, customerName, customerPhone, staff } = req.body;
 
     let finalCustomer = (customer && customer.trim() !== '') ? customer : undefined;
     
@@ -41,7 +42,7 @@ router.post('/', async (req, res) => {
     }
 
     // 1. Create Sale
-    const newSale = new Sale({ product, customer: finalCustomer, quantitySold, revenue, status, payment_method, notes });
+    const newSale = new Sale({ product, customer: finalCustomer, quantitySold, revenue, status, payment_method, notes, staff });
     const savedSale = await newSale.save();
 
     // 2. Decrement inventory

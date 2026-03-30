@@ -10,6 +10,10 @@ const saleSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Customer'
   },
+  staff: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  },
   quantitySold: {
     type: Number,
     required: true,

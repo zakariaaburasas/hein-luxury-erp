@@ -1,20 +1,46 @@
 import React, { useState } from 'react';
 import Dashboard from './components/Dashboard';
+import API_URL from './api/config';
 
 function App() {
   const [auth, setAuth] = useState({ isAuthenticated: false, user: null, role: null });
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
 
-  const handleLogin = (e) => {
+  React.useEffect(() => {
+    // Initial system setup if needed
+    fetch(`${API_URL}/api/auth/setup`, { method: 'POST' }).catch(() => {});
+  }, []);
+
+  const handleLogin = async (e) => {
     e.preventDefault();
-    if (username === 'Admin' && password === 'Aburasas') {
-      setAuth({ isAuthenticated: true, user: 'Zakaria', role: 'admin' });
-    } else if (username === 'Staff' && password === 'Staff123') {
-      setAuth({ isAuthenticated: true, user: 'Employee', role: 'staff' });
-    } else {
-      setError('Invalid Credentials');
+    setIsLoggingIn(true);
+    setError('');
+
+    try {
+      const response = await fetch(`${API_URL}/api/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        setAuth({ 
+          isAuthenticated: true, 
+          user: data.user.name, 
+          role: data.user.role,
+          id: data.user.id
+        });
+      } else {
+        setError(data.message || 'Invalid Credentials');
+      }
+    } catch (err) {
+      setError('Connection to HEIN Engine failed.');
+    } finally {
+      setIsLoggingIn(false);
     }
   };
 
@@ -50,7 +76,9 @@ function App() {
               />
               {error && <p className="text-red-500 font-bold text-[10px] uppercase tracking-widest mt-2 bg-red-900/10 p-2 rounded border border-red-500/20 text-center">{error}</p>}
             </div>
-            <button type="submit" className="btn-gold w-full mt-4 py-4 text-sm font-bold tracking-[0.2em]">ACCESS SYSTEM</button>
+            <button disabled={isLoggingIn} type="submit" className="btn-gold w-full mt-4 py-4 text-sm font-bold tracking-[0.2em] disabled:opacity-50">
+              {isLoggingIn ? 'ACCESSING...' : 'ACCESS SYSTEM'}
+            </button>
           </form>
           <p className="mt-6 text-[9px] uppercase tracking-widest text-gray-500">Authorized Personnel Only</p>
         </div>
@@ -58,7 +86,7 @@ function App() {
     );
   }
 
-  return <Dashboard user={auth.user} role={auth.role} />;
+  return <Dashboard user={auth.user} role={auth.role} userId={auth.id} />;
 }
 
 export default App;

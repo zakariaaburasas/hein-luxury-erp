@@ -70,8 +70,8 @@ export default function FinanceView() {
     <div className="space-y-10 pb-20">
       <header className="flex items-center justify-between border-b border-brand-border pb-6">
         <div>
-          <h2 className="font-serif text-2xl tracking-wide text-white">Financial Intelligence Platform</h2>
-          <p className="mt-1 text-sm text-gray-400">Dynamic aggregation of revenue, cost of goods, and operational overhead.</p>
+          <h2 className="font-serif text-2xl tracking-wide text-txt-main">Financial Intelligence Platform</h2>
+          <p className="mt-1 text-sm text-txt-muted">Dynamic aggregation of revenue, cost of goods, and operational overhead.</p>
         </div>
         <div className="flex items-center gap-3">
             <span className="text-[0.65rem] font-bold text-brand-gold bg-brand-gold/10 px-3 py-1 rounded-full border border-brand-gold/20 uppercase tracking-[0.15em]">Live Pipeline Active</span>
@@ -79,43 +79,43 @@ export default function FinanceView() {
       </header>
 
       {/* Primary Metrics Grid */}
-      <div className="grid grid-cols-4 gap-6">
-        <div className="rounded-[1.25rem] border border-brand-border bg-brand-gray p-6 shadow-xl relative overflow-hidden group">
-          <div className="absolute right-0 top-0 p-4 text-white/5 group-hover:text-brand-gold/10 transition-colors">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="rounded-[1.25rem] border border-brand-border bg-bg-card p-6 shadow-xl relative overflow-hidden group">
+          <div className="absolute right-0 top-0 p-4 text-txt-main/5 group-hover:text-brand-gold/10 transition-colors">
             <DollarSign size={80} />
           </div>
-          <p className="text-[0.6rem] uppercase tracking-widest text-gray-500 font-bold mb-4">Gross Revenue</p>
-          <h3 className="font-serif text-3xl text-white font-bold">${metrics.totalRevenue.toLocaleString()}</h3>
-          <p className="text-[0.65rem] text-gray-400 mt-2 flex items-center gap-1">
-            <TrendingUp size={10} className="text-green-400" /> +12.5% vs Last Quarter
+          <p className="text-[0.6rem] uppercase tracking-widest text-txt-muted font-bold mb-4">Gross Revenue</p>
+          <h3 className="font-serif text-3xl text-txt-main font-bold">${metrics.totalRevenue.toLocaleString()}</h3>
+          <p className="text-[0.65rem] text-txt-muted mt-2 flex items-center gap-1">
+            <TrendingUp size={10} className="text-green-500" /> +12.5% vs Last Quarter
           </p>
         </div>
 
-        <div className="rounded-[1.25rem] border border-brand-border bg-brand-gray p-6 shadow-xl relative overflow-hidden group">
-             <div className="absolute right-0 top-0 p-4 text-white/5 group-hover:text-red-400/10 transition-colors">
+        <div className="rounded-[1.25rem] border border-brand-border bg-bg-card p-6 shadow-xl relative overflow-hidden group">
+             <div className="absolute right-0 top-0 p-4 text-txt-main/5 group-hover:text-red-400/10 transition-colors">
                 <PieChart size={80} />
             </div>
-          <p className="text-[0.6rem] uppercase tracking-widest text-gray-500 font-bold mb-4">Cost breakdown (COGS + OPEX)</p>
-          <h3 className="font-serif text-3xl text-red-400 font-bold">-${(metrics.totalCOGS + metrics.totalExpenses).toLocaleString()}</h3>
-          <p className="text-[0.65rem] text-gray-400 mt-2">Inventory + Operations</p>
+          <p className="text-[0.6rem] uppercase tracking-widest text-txt-muted font-bold mb-4">Cost breakdown (COGS + OPEX)</p>
+          <h3 className="font-serif text-3xl text-red-500 dark:text-red-400 font-bold">-${(metrics.totalCOGS + metrics.totalExpenses).toLocaleString()}</h3>
+          <p className="text-[0.65rem] text-txt-muted mt-2">Inventory + Operations</p>
         </div>
 
         <div className="rounded-[1.25rem] border border-brand-gold bg-brand-gold/5 p-6 shadow-xl border-dashed">
           <p className="text-[0.6rem] uppercase tracking-widest text-brand-gold font-bold mb-4">Operational Alpha (Net Profit)</p>
           <h3 className="font-serif text-4xl text-brand-gold font-bold">${metrics.netProfit.toLocaleString()}</h3>
           <div className="mt-4 flex gap-2">
-            <span className="bg-brand-gold text-brand-black text-[0.6rem] font-bold px-2 py-0.5 rounded-full">{netMargin}% Margin</span>
+            <span className="bg-brand-gold text-white dark:text-brand-black text-[0.6rem] font-bold px-2 py-0.5 rounded-full">{netMargin}% Margin</span>
           </div>
         </div>
 
         <div className="grid grid-rows-2 gap-4">
-            <div className="rounded-xl border border-brand-border bg-brand-gray/50 px-4 py-3 flex justify-between items-center">
-                <span className="text-[0.65rem] text-gray-400 uppercase tracking-widest">Gross Margin</span>
-                <span className="font-serif text-xl text-white">{grossMargin}%</span>
+            <div className="rounded-xl border border-brand-border bg-bg-card px-4 py-3 flex justify-between items-center">
+                <span className="text-[0.65rem] text-txt-muted uppercase tracking-widest">Gross Margin</span>
+                <span className="font-serif text-xl text-txt-main">{grossMargin}%</span>
             </div>
-            <div className="rounded-xl border border-brand-border bg-brand-gray/50 px-4 py-3 flex justify-between items-center">
-                <span className="text-[0.65rem] text-gray-400 uppercase tracking-widest">Efficiency</span>
-                <span className="font-serif text-xl text-white">94.2%</span>
+            <div className="rounded-xl border border-brand-border bg-bg-card px-4 py-3 flex justify-between items-center">
+                <span className="text-[0.65rem] text-txt-muted uppercase tracking-widest">Efficiency</span>
+                <span className="font-serif text-xl text-txt-main">94.2%</span>
             </div>
         </div>
       </div>

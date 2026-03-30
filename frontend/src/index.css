@@ -3,26 +3,52 @@
 @theme {
   --color-brand-gold: #D4AF37;
   --color-brand-gold-hover: #E5C359;
-  --color-brand-black: #0a0a0a;
-  --color-brand-gray: #141414;
-  --color-brand-border: #27272a;
+  
+  --color-bg-main: var(--bg-main);
+  --color-bg-card: var(--bg-card);
+  --color-brand-border: var(--border-color);
+  --color-txt-main: var(--text-main);
+  --color-txt-muted: var(--text-muted);
+  
+  /* Legacy Names for Backward Compatibility */
+  --color-brand-black: var(--bg-main);
+  --color-brand-gray: var(--bg-card);
   
   --font-serif: "Playfair Display", serif;
   --font-sans: "Inter", sans-serif;
 }
 
+/* Light Theme Variables (Default) */
+:root {
+  --bg-main: #fdfcf8;
+  --bg-card: #ffffff;
+  --border-color: #e5e7eb;
+  --text-main: #111827;
+  --text-muted: #6b7280;
+}
+
+/* Dark Theme Variables */
+.dark {
+  --bg-main: #0a0a0a;
+  --bg-card: #141414;
+  --border-color: #27272a;
+  --text-main: #ffffff;
+  --text-muted: #9ca3af;
+}
+
 @layer base {
   body {
-    @apply bg-brand-black text-white font-sans antialiased;
+    @apply bg-bg-main text-txt-main font-sans antialiased transition-colors duration-300;
   }
 }
 
 @layer components {
   .btn-gold {
-    @apply bg-transparent text-brand-gold border border-brand-gold px-6 py-3 font-sans text-sm font-medium tracking-widest uppercase transition-all duration-300 hover:bg-brand-gold hover:text-brand-black hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(212,175,55,0.2)];
+    @apply bg-transparent text-brand-gold border border-brand-gold px-6 py-3 font-sans text-sm font-medium tracking-widest uppercase transition-all duration-300 hover:bg-brand-gold hover:text-white hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(212,175,55,0.2)] dark:hover:text-bg-main;
   }
   
   .form-control {
-    @apply w-full bg-brand-black border border-brand-border text-white px-4 py-3 font-sans transition-all duration-300 rounded focus:outline-none focus:border-brand-gold focus:ring-1 focus:ring-brand-gold;
+    @apply w-full bg-bg-main border border-brand-border text-txt-main px-4 py-3 font-sans transition-all duration-300 rounded focus:outline-none focus:border-brand-gold focus:ring-1 focus:ring-brand-gold placeholder:text-txt-muted/50;
   }
 }
+
