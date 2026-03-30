@@ -54,6 +54,8 @@ function StatCard({ title, value, subtitle, trend, isPrimary, isNegative, icon: 
 
 // ─── Main Dashboard ──────────────────────────────────────
 export default function Dashboard() {
+  const [activeTab, setActiveTab] = useState('dashboard');
+  const [searchQuery, setSearchQuery] = useState('');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [finance, setFinance] = useState({ totalRevenue: 0, grossProfit: 0, totalExpenses: 0, netProfit: 0, totalSalesVolume: 0 });
   const [monthlyData, setMonthlyData] = useState([]);

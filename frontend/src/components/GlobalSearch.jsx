@@ -86,7 +86,7 @@ export default function GlobalSearch({ onNavigate }) {
           value={query}
           onChange={e => { setQuery(e.target.value); setOpen(true); }}
           onFocus={() => setOpen(true)}
-          className="bg-brand-gray border border-brand-border rounded-full pl-9 pr-8 py-2 text-xs w-72 focus:outline-none focus:border-brand-gold/50 focus:w-96 transition-all duration-300 text-white placeholder:text-gray-600"
+          className="bg-brand-gray border border-brand-border rounded-full pl-9 pr-8 py-2 text-xs w-full sm:w-72 focus:outline-none focus:border-brand-gold/50 sm:focus:w-96 transition-all duration-300 text-white placeholder:text-gray-600 shadow-inner"
         />
         {query && (
           <button onClick={() => { setQuery(''); setOpen(false); }}
@@ -96,7 +96,7 @@ export default function GlobalSearch({ onNavigate }) {
         )}
         {/* Result count badge */}
         {query && loaded && (
-          <span className="absolute -top-1.5 -right-1.5 bg-brand-gold text-black text-[0.55rem] font-black px-1.5 py-0.5 rounded-full min-w-[18px] text-center leading-none">
+          <span className="absolute -top-1.5 -right-1.5 bg-brand-gold text-black text-[0.55rem] font-black px-1.5 py-0.5 rounded-full min-w-[18px] text-center leading-none shadow-md">
             {totalResults}
           </span>
         )}
@@ -104,7 +104,7 @@ export default function GlobalSearch({ onNavigate }) {
 
       {/* Results Dropdown */}
       {open && query && loaded && (
-        <div className="absolute top-full right-0 mt-2 w-[520px] rounded-[1rem] border border-brand-border bg-brand-black/95 backdrop-blur-md shadow-2xl z-[100] overflow-hidden">
+        <div className="absolute top-full right-0 mt-2 w-screen sm:w-[520px] max-w-[calc(100vw-2rem)] rounded-[1rem] border border-brand-border bg-brand-black/95 backdrop-blur-md shadow-2xl z-[100] overflow-hidden translate-x-12 sm:translate-x-0">
           {!hasResults ? (
             <div className="px-5 py-6 text-center">
               <p className="text-gray-500 text-xs font-mono">No results for "{query}"</p>
