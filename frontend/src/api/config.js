@@ -1,3 +1,5 @@
-const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
-// INSTRUCTIONS: On Vercel, set VITE_API_BASE_URL to your backend URL.
+const base = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+// Strip trailing slash if exists to prevent double slash errors
+const API_URL = base.endsWith('/') ? base.slice(0, -1) : base;
+
 export default API_URL;

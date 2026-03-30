@@ -45,8 +45,12 @@ export default function InventoryView({ searchQuery, userId }) {
         }
         setShowAddForm(false);
         setEditingProduct(null);
+      } else {
+        const err = await res.json().catch(() => ({ message: res.statusText }));
+        alert(`Engine Error: ${err.message || 'The server rejected the entry'}`);
       }
     } catch (error) {
+      alert(`Network Failure: Could not reach ${API_URL}`);
       console.error('Error saving product:', error);
     }
   };

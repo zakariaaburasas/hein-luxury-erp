@@ -47,12 +47,12 @@ export default function ProfileView({ userId, currentName, currentAvatar, curren
         setSaved(true);
         setTimeout(() => setSaved(false), 3000);
       } else {
-        const err = await response.json();
-        alert(`Error: ${err.message || 'Failed to update profile'}`);
+        const err = await response.json().catch(() => ({ message: response.statusText }));
+        alert(`Engine Rejected Profile: ${err.message || 'Verification Error'}`);
       }
     } catch (err) {
       console.error("Profile update failed:", err);
-      alert("Network error: Could not connect to HEIN Engine.");
+      alert(`Network connectivity loss: ${API_URL} is missing or unresponsive.`);
     } finally {
       setIsSaving(false);
     }

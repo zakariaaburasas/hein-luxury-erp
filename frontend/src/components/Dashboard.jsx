@@ -93,14 +93,20 @@ export default function Dashboard({ user: initialUser, role, userId }) {
   useEffect(() => {
     if (!userId) return;
     
-    // Heartbeat to keep status "Online"
-    const pingInterval = setInterval(async () => {
+    const pulseHeartbeat = async () => {
       try {
-        await fetch(`${API_URL}/api/users/ping/${userId}`, { method: 'PUT' });
+        const res = await fetch(`${API_URL}/api/users/ping/${userId}`, { 
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' }
+        });
+        if (!res.ok) console.warn('Heartbeat: Server heartbeat reject.');
       } catch (err) {
-        console.warn('Heartbeat synchronization failed.');
+        console.warn('Heartbeat: Engine unreachable.');
       }
-    }, 30000); // Pulse every 30s
+    };
+
+    pulseHeartbeat(); // Immediate pulse on mount
+    const pingInterval = setInterval(pulseHeartbeat, 30000); // 30s Pulse
 
     return () => clearInterval(pingInterval);
   }, [userId]);

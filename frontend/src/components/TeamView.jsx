@@ -4,6 +4,7 @@ import API_URL from '../api/config';
 
 export default function TeamView() {
   const [team, setTeam] = useState([]);
+  const [serverTime, setServerTime] = useState(new Date());
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingMember, setEditingMember] = useState(null);
@@ -26,7 +27,12 @@ export default function TeamView() {
       const res = await fetch(`${API_URL}/api/users`);
       if (res.ok) {
         const data = await res.json();
-        setTeam(data);
+        if (data.users) {
+          setTeam(data.users);
+          setServerTime(new Date(data.serverTime));
+        } else {
+          setTeam(data);
+        }
       }
     } catch (err) {
       console.error('Failed to fetch team:', err);
@@ -217,24 +223,28 @@ export default function TeamView() {
             <div className="mt-6 flex items-center justify-between relative z-10">
               <div className="flex items-center gap-2">
                 {(() => {
-                    const isOnline = member.lastSeen && (new Date() - new Date(member.lastSeen)) < 60000;
+                    const now = serverTime.getTime();
+                    const lastSeenDate = member.lastSeen ? new Date(member.lastSeen).getTime() : 0;
+                    const diffMinutes = (now - lastSeenDate) / 1000 / 60;
+                    const isOnline = lastSeenDate > 0 && Math.abs(diffMinutes) < 5; // Use absolute diff to handle minor drift
+                    
                     return (
                         <>
                             <div className={`w-1.5 h-1.5 rounded-full ${
                                 member.status === 'suspended' ? 'bg-red-500' : 
-                                (isOnline ? 'bg-green-500 animate-ping' : 'bg-gray-500')
+                                (isOnline ? 'bg-green-400 shadow-[0_0_8px_rgba(34,197,94,0.6)] animate-pulse' : 'bg-gray-600')
                             }`}></div>
-                            <span className={`text-[9px] uppercase font-bold tracking-widest ${
+                            <span className={`text-[9px] uppercase font-bold tracking-[0.1em] ${
                                 member.status === 'suspended' ? 'text-red-500' : 
-                                (isOnline ? 'text-green-500' : 'text-gray-500')
+                                (isOnline ? 'text-green-400' : 'text-gray-500')
                             }`}>
-                                {member.status === 'suspended' ? 'Suspended' : (isOnline ? 'Online' : 'Offline')}
+                                {member.status === 'suspended' ? 'Suspended' : (isOnline ? 'ACTIVE NOW' : 'OFFLINE')}
                             </span>
                         </>
                     );
                 })()}
               </div>
-              <span className="text-[8px] text-txt-muted/40 italic font-mono">Last Seen: {member.lastSeen ? new Date(member.lastSeen).toLocaleTimeString() : 'Never'}</span>
+              <span className="text-[8px] text-txt-muted/40 italic font-mono">Synced: {member.lastSeen ? new Date(member.lastSeen).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'Never'}</span>
             </div>
           </div>
         ))}

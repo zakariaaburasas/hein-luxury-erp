@@ -15,8 +15,12 @@ const userRoutes = require('./routes/userRoutes');
 const app = express();
 
 // Middleware
-app.use(cors());
-app.use(express.json());
+app.use(cors({
+    origin: '*', // Allow all for now to solve connectivity issues
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
+app.use(express.json({ limit: '20mb' })); // Higher limit for Base64 images
 
 // Routes
 app.use('/api/products', productRoutes);
