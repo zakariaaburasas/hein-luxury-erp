@@ -47,7 +47,7 @@ export default function SalesView({ searchQuery, userId }) {
     customer: '', 
     customerName: '', 
     customerPhone: '', 
-    addToVip: false, 
+    vipStatus: 'None',
     quantitySold: 1, 
     discountAmount: 0, 
     status: 'Paid', 
@@ -232,10 +232,17 @@ export default function SalesView({ searchQuery, userId }) {
                   ))}
                 </select>
                 {formData.customer === '' && (
-                  <div className="space-y-3 pt-2 border-t border-brand-border/40">
-                    <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-3 pt-3 border-t border-brand-border/40 mt-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                       <input type="text" className="form-control text-sm" placeholder="Client Name" value={formData.customerName} onChange={e => setFormData(f => ({...f, customerName: e.target.value}))} />
-                      <input type="text" className="form-control text-sm" placeholder="Phone Link" value={formData.customerPhone} onChange={e => setFormData(f => ({...f, customerPhone: e.target.value}))} />
+                      <input type="text" className="form-control text-sm" placeholder="Phone Number" value={formData.customerPhone} onChange={e => setFormData(f => ({...f, customerPhone: e.target.value}))} />
+                      <select className="form-control text-sm" value={formData.vipStatus || 'None'} onChange={e => setFormData(f => ({...f, vipStatus: e.target.value}))}>
+                        <option value="None">Not VIP (Standard)</option>
+                        <option value="Bronze">Bronze VIP</option>
+                        <option value="Silver">Silver VIP</option>
+                        <option value="Gold">Gold VIP</option>
+                        <option value="Platinum">Platinum VIP</option>
+                      </select>
                     </div>
                   </div>
                 )}

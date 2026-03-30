@@ -21,7 +21,7 @@ router.get('/', async (req, res) => {
 // POST new sale — auto-decrements stock and triggers low stock alert
 router.post('/', async (req, res) => {
   try {
-    const { product, customer, quantitySold, revenue, status, payment_method, notes, customerName, customerPhone, staff } = req.body;
+    const { product, customer, quantitySold, revenue, status, payment_method, notes, customerName, customerPhone, vipStatus, staff } = req.body;
 
     let finalCustomer = (customer && customer.trim() !== '') ? customer : undefined;
     
@@ -30,7 +30,7 @@ router.post('/', async (req, res) => {
         const newCust = await Customer.create({
             name: customerName.trim(),
             phoneNumber: customerPhone ? customerPhone.trim() : '',
-            vipStatus: 'Bronze'
+            vipStatus: vipStatus || 'None'
         });
         finalCustomer = newCust._id;
     }

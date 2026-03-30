@@ -104,7 +104,7 @@ export default function GlobalSearch({ onNavigate }) {
 
       {/* Results Dropdown */}
       {open && query && loaded && (
-        <div className="absolute top-full -right-4 sm:right-0 mt-2 w-[calc(100vw-2rem)] sm:w-[520px] max-w-[520px] rounded-[1rem] border border-brand-border bg-brand-black/95 backdrop-blur-xl shadow-2xl z-[100] overflow-hidden">
+        <div className="absolute top-full -right-4 sm:right-0 mt-2 w-[calc(100vw-2rem)] sm:w-[520px] rounded-[1rem] border border-brand-border bg-[#1A1A1A] shadow-[0_20px_50px_rgba(0,0,0,0.8)] z-[9999] max-h-[70vh] flex flex-col overflow-hidden">
           {!hasResults ? (
             <div className="px-5 py-6 text-center">
               <p className="text-gray-500 text-xs font-mono">No results for "{query}"</p>
