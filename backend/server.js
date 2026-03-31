@@ -54,40 +54,31 @@ app.use((err, req, res, next) => {
 });
 
 // Database Connection Logic
-const startServer = async () => {
-    const PORT = process.env.PORT || 5000;
-    const MONGODB_URI = process.env.MONGODB_URI;
+const MONGODB_URI = process.env.MONGODB_URI;
 
-    console.log('🔄 DEPLOYMENT UPDATE: System starting...');
-    console.log('🔍 Checking Environment: ', MONGODB_URI ? 'MONGODB_URI Found' : 'MONGODB_URI MISSING');
-
-    try {
-        if (!MONGODB_URI) {
-            console.error('❌ MONGODB_URI IS MISSING. CRITICAL SYSTEM FAILURE.');
-            process.exit(1);
-        }
-
-        console.log('🔌 Attempting to connect to MongoDB Atlas...');
-        
-        // Let's add options for better stability on Render
-        await mongoose.connect(MONGODB_URI, {
-            serverSelectionTimeoutMS: 15000, // Timeout after 15s instead of hanging
-            family: 4 // Force IPv4 (sometimes Render prefers this)
-        });
-
+if (!MONGODB_URI) {
+    console.warn('❌ MONGODB_URI IS MISSING. CRITICAL SYSTEM FAILURE.');
+} else {
+    console.log('🔌 Attempting to connect to MongoDB Atlas...');
+    mongoose.connect(MONGODB_URI, {
+        serverSelectionTimeoutMS: 15000,
+        family: 4
+    }).then(() => {
         console.log('✅ Connected to LIVE MongoDB Atlas Database');
-
-        app.listen(PORT, () => {
-            console.log('--------------------------------------------------');
-            console.log(`🚀 HEIN ERP Engine active on port ${PORT}`);
-            console.log('--------------------------------------------------');
-        });
-
-    } catch (err) {
+    }).catch(err => {
         console.error('❌ MONGODB CONNECTION ERROR:', err.message);
-        console.error('💡 PRO TIP: Check if your MongoDB Atlas has "Network Access" set to "Allow Access From Anywhere (0.0.0.0/0)".');
-        process.exit(1); // Exit so Render shows the error in logs clearly
-    }
-};
+    });
+}
 
-startServer();
+// Conditionally listen if not on Vercel (Vercel uses exported app)
+if (!process.env.VERCEL_ENV && !process.env.VERCEL) {
+    const PORT = process.env.PORT || 5000;
+    app.listen(PORT, () => {
+        console.log('--------------------------------------------------');
+        console.log(`🚀 HEIN ERP Engine active on port ${PORT}`);
+        console.log('--------------------------------------------------');
+    });
+}
+
+// Export the Express API for Vercel Serverless Functions
+module.exports = app;
