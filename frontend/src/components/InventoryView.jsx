@@ -46,8 +46,19 @@ export default function InventoryView({ searchQuery, userId }) {
         setShowAddForm(false);
         setEditingProduct(null);
       } else {
-        const err = await res.json().catch(() => ({ message: res.statusText }));
-        alert(`Engine Error: ${err.message || 'The server rejected the entry'}`);
+        let errorDetails = 'Unknown Rejection';
+        try {
+          const rawText = await res.text();
+          try {
+            const errObj = JSON.parse(rawText);
+            errorDetails = `HTTP ${res.status}: ${errObj.message || ''} | ${errObj.error || ''}`;
+          } catch(e) {
+            errorDetails = `HTTP ${res.status} [Platform Error]: ${res.statusText}. Payload block.`;
+          }
+        } catch(e) {
+          errorDetails = `HTTP ${res.status} [Network Read Error]`;
+        }
+        alert(`Engine Status Alert: ${errorDetails}`);
       }
     } catch (error) {
       alert(`Network Failure: Could not reach ${API_URL}`);
