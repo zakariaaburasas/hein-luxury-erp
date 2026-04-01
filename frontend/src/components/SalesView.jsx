@@ -52,7 +52,8 @@ export default function SalesView({ searchQuery, userId }) {
     discountAmount: 0, 
     status: 'Paid', 
     payment_method: 'Zaad',
-    size_sold: ''
+    size_sold: '',
+    sizes_sold: {} // format: { '40': 2, '41': 1 }
   });
   const [submitting, setSubmitting] = useState(false);
 
@@ -81,43 +82,63 @@ export default function SalesView({ searchQuery, userId }) {
   const handleProductSelect = (id) => {
     const prod = products.find(p => p._id === id);
     setSelectedProduct(prod || null);
-    setFormData(f => ({ ...f, product: id }));
+    setFormData(f => ({ ...f, product: id, sizes_sold: {}, size_sold: '' }));
   };
 
   const executeSale = async (e) => {
     e.preventDefault();
     if (!formData.product || !selectedProduct) return;
     
-    if (selectedProduct.stockLevel < formData.quantitySold) {
-      return setToast({ type: 'alert', message: `Only ${selectedProduct.stockLevel} units available for ${selectedProduct.name}` });
+    const hasSizes = selectedProduct.sizes && selectedProduct.sizes.length > 0;
+    const selectedSizesEntries = Object.entries(formData.sizes_sold || {}).filter(([_, q]) => q > 0);
+    const totalSelectedQty = selectedSizesEntries.reduce((sum, [_, q]) => sum + q, 0);
+
+    if (hasSizes && totalSelectedQty === 0) {
+      return setToast({ type: 'alert', message: `You must specify a quantity for at least one size.` });
     }
 
-    if (selectedProduct.sizes && selectedProduct.sizes.length > 0 && !formData.size_sold) {
-      return setToast({ type: 'alert', message: `You must select a specific size for this product.` });
+    const finalQuantity = hasSizes ? totalSelectedQty : formData.quantitySold;
+
+    if (selectedProduct.stockLevel < finalQuantity) {
+      return setToast({ type: 'alert', message: `Only ${selectedProduct.stockLevel} total units available for ${selectedProduct.name}` });
     }
 
-    
+    if (hasSizes) {
+       for (const [sz, qty] of selectedSizesEntries) {
+          const invSize = selectedProduct.sizes.find(s => s.size === sz);
+          if (invSize && invSize.quantity < qty) {
+             return setToast({ type: 'alert', message: `Only ${invSize.quantity} units of size ${sz} available` });
+          }
+       }
+    }
+
     if (parseFloat(formData.discountAmount || 0) > (selectedProduct.max_discount_allowed || 0)) {
       return setToast({ type: 'alert', message: `Security Lock: Maximum discount allowed is $${selectedProduct.max_discount_allowed || 0}` });
     }
 
     const itemRevenue = (selectedProduct.selling_price || selectedProduct.salePrice || 0) - parseFloat(formData.discountAmount || 0);
-    const revenue = itemRevenue * formData.quantitySold;
+    const revenue = itemRevenue * finalQuantity;
     setSubmitting(true);
 
     try {
       const res = await fetch(`${API_URL}/api/sales`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...formData, revenue, staff: userId })
+        body: JSON.stringify({ 
+           ...formData, 
+           quantitySold: finalQuantity, 
+           revenue, 
+           staff: userId,
+           sizes_sold: selectedSizesEntries.map(([s, q]) => ({ size: s, quantity: q }))
+        })
       });
       const data = await res.json();
 
       if (res.ok) {
         fetchAll(); // Refresh all to get joined data
-        setToast({ type: 'success', message: `Sale of ${formData.quantitySold}x ${selectedProduct.name} recorded.` });
+        setToast({ type: 'success', message: `Sale of ${finalQuantity}x ${selectedProduct.name} recorded.` });
         setShowForm(false);
-        setFormData({ product: '', customer: '', customerName: '', customerPhone: '', addToVip: false, quantitySold: 1, discountAmount: 0, status: 'Paid', payment_method: 'Zaad', size_sold: '' });
+        setFormData({ product: '', customer: '', customerName: '', customerPhone: '', addToVip: false, quantitySold: 1, discountAmount: 0, status: 'Paid', payment_method: 'Zaad', size_sold: '', sizes_sold: {} });
         setSelectedProduct(null);
       } else {
         setToast({ type: 'alert', message: data.message || 'Sale failed.' });
@@ -162,8 +183,13 @@ export default function SalesView({ searchQuery, userId }) {
   };
 
   const liveDiscount = parseFloat(formData.discountAmount) || 0;
+  const hasSizesSelected = selectedProduct && selectedProduct.sizes && selectedProduct.sizes.length > 0;
+  const displayQty = hasSizesSelected 
+      ? Object.values(formData.sizes_sold || {}).reduce((a, b) => a + b, 0) || 1
+      : formData.quantitySold;
+
   const liveRevenue = selectedProduct
-    ? (((selectedProduct.selling_price || selectedProduct.salePrice || 0) - liveDiscount) * formData.quantitySold)
+    ? (((selectedProduct.selling_price || selectedProduct.salePrice || 0) - liveDiscount) * displayQty)
     : 0;
 
   const now = new Date();
@@ -271,34 +297,25 @@ export default function SalesView({ searchQuery, userId }) {
 
                 {selectedProduct.sizes && selectedProduct.sizes.length > 0 && (
                   <div className="space-y-3">
-                    <label className="text-[10px] uppercase tracking-widest text-brand-gold font-bold">Select Valid Size</label>
-                    <div className="flex flex-wrap gap-3">
-                      {selectedProduct.sizes.map((s, idx) => {
-                        const isSelected = formData.size_sold === s.size;
-                        const isSoldOut = s.quantity === 0;
-                        return (
-                          <button
-                            key={idx}
-                            type="button"
-                            disabled={isSoldOut}
-                            onClick={() => setFormData(f => ({ ...f, size_sold: s.size }))}
-                            className={`relative px-4 py-2.5 rounded-lg border font-mono font-bold transition-all ${
-                              isSoldOut 
-                                ? 'border-brand-border/30 bg-bg-main/50 text-txt-muted/30 cursor-not-allowed hidden' // changed from line-through to hidden later maybe? 
-                                : isSelected
-                                ? 'border-brand-gold bg-brand-gold/20 text-brand-gold shadow-[0_0_15px_rgba(212,175,55,0.2)]'
-                                : 'border-brand-border bg-bg-card text-txt-main hover:border-brand-gold/50 hover:bg-brand-gold/5'
-                            } ${isSoldOut ? 'opacity-40' : ''}`}
-                          >
-                            <span className={isSoldOut ? 'line-through' : ''}>{s.size}</span>
-                            {!isSoldOut && (
-                              <span className={`absolute -top-2 -right-2 text-[9px] px-1.5 py-0.5 rounded-full ${isSelected ? 'bg-brand-gold text-brand-black' : 'bg-bg-main border border-brand-border text-txt-muted'}`}>
-                                {s.quantity}
-                              </span>
-                            )}
-                          </button>
-                        );
-                      })}
+                    <label className="text-[10px] uppercase tracking-widest text-brand-gold font-bold">Specify Sizes & Quantities</label>
+                    <div className="flex flex-col gap-2">
+                       {selectedProduct.sizes.map((s, idx) => {
+                          const qty = formData.sizes_sold[s.size] || 0;
+                          const isSoldOut = s.quantity === 0;
+                          return (
+                            <div key={idx} className={`flex items-center justify-between p-3 rounded-xl border ${isSoldOut ? 'bg-bg-main border-brand-border/30 opacity-50' : qty > 0 ? 'border-brand-gold bg-brand-gold/5' : 'bg-bg-card border-brand-border'}`}>
+                               <div>
+                                  <span className="font-mono font-bold text-sm">Size {s.size}</span>
+                                  <span className="text-[10px] text-txt-muted ml-2">({s.quantity} available)</span>
+                               </div>
+                               <div className="flex items-center gap-3">
+                                  <button type="button" disabled={isSoldOut || qty === 0} onClick={() => setFormData(f => ({ ...f, sizes_sold: { ...f.sizes_sold, [s.size]: Math.max(0, qty - 1) } }))} className="w-8 h-8 rounded-lg bg-bg-main border border-brand-border flex items-center justify-center font-bold disabled:opacity-30">-</button>
+                                  <span className="font-mono font-bold w-4 text-center">{qty}</span>
+                                  <button type="button" disabled={isSoldOut || qty >= s.quantity} onClick={() => setFormData(f => ({ ...f, sizes_sold: { ...f.sizes_sold, [s.size]: qty + 1 } }))} className="w-8 h-8 rounded-lg bg-bg-main border border-brand-border flex items-center justify-center font-bold text-brand-gold disabled:opacity-30">+</button>
+                               </div>
+                            </div>
+                          )
+                       })}
                     </div>
                   </div>
                 )}
@@ -308,7 +325,7 @@ export default function SalesView({ searchQuery, userId }) {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
               <div className="space-y-1">
                 <label className="text-[10px] uppercase tracking-widest text-txt-muted font-bold">Quantity</label>
-                <input type="number" min="1" className="form-control" value={formData.quantitySold} onChange={e => setFormData(f => ({ ...f, quantitySold: parseInt(e.target.value) || 1 }))} required />
+                <input type="number" min="1" disabled={hasSizesSelected} className="form-control disabled:opacity-50 disabled:cursor-not-allowed border-brand-border/50" value={displayQty} onChange={e => !hasSizesSelected && setFormData(f => ({ ...f, quantitySold: parseInt(e.target.value) || 1 }))} required />
               </div>
               <div className="space-y-1">
                 <label className="text-[10px] uppercase tracking-widest text-txt-muted font-bold">Discount ($)</label>
@@ -362,7 +379,15 @@ export default function SalesView({ searchQuery, userId }) {
                 </div>
                 <h4 className="text-sm font-bold text-txt-main mb-1 truncate">{s.product?.name || 'Unknown Article'}</h4>
                 <div className="flex items-center justify-between text-[10px] text-txt-muted mb-4">
-                   <span>Qty: {s.quantitySold} {s.size_sold ? `· Size: ${s.size_sold}` : ''} · {s.payment_method}</span>
+                   <div className="flex-1">
+                     <span className="block mb-1">Qty: {s.quantitySold} · {s.payment_method}</span>
+                     {s.size_sold && <span className="block text-brand-gold text-[9px]">Size: {s.size_sold}</span>}
+                     {s.sizes_sold && s.sizes_sold.length > 0 && (
+                       <span className="block text-brand-gold text-[9px]">
+                         Sizes: {s.sizes_sold.map(sz => `${sz.size} (x${sz.quantity})`).join(', ')}
+                       </span>
+                     )}
+                   </div>
                    <span className="font-mono text-brand-gold bg-brand-gold/5 px-2 rounded tracking-tighter">{s.staff?.name || 'System'}</span>
                 </div>
                 <div className="flex justify-between items-center border-t border-brand-border/50 pt-4 relative z-10">
@@ -408,6 +433,15 @@ export default function SalesView({ searchQuery, userId }) {
                            <span className="ml-2 text-[10px] bg-brand-gold/10 text-brand-gold px-1.5 py-0.5 rounded font-mono border border-brand-gold/20">
                              Size {s.size_sold}
                            </span>
+                         )}
+                         {s.sizes_sold && s.sizes_sold.length > 0 && (
+                           <div className="mt-1 flex flex-wrap gap-1">
+                             {s.sizes_sold.map((sz, i) => (
+                               <span key={i} className="text-[9px] bg-brand-gold/10 text-brand-gold px-1.5 py-0.5 rounded font-mono border border-brand-gold/20">
+                                 Size {sz.size} (x{sz.quantity})
+                               </span>
+                             ))}
+                           </div>
                          )}
                        </div>
                        <div className="text-[10px] text-txt-muted/80 flex items-center gap-1 mt-0.5 italic">

@@ -21,7 +21,7 @@ router.get('/', async (req, res) => {
 // POST new sale — auto-decrements stock and specific size quantity
 router.post('/', async (req, res) => {
   try {
-    const { product, customer, quantitySold, revenue, status, payment_method, notes, customerName, customerPhone, vipStatus, staff, size_sold } = req.body;
+    const { product, customer, quantitySold, revenue, status, payment_method, notes, customerName, customerPhone, vipStatus, staff, size_sold, sizes_sold } = req.body;
 
     let finalCustomer = (customer && customer.trim() !== '') ? customer : undefined;
     
@@ -41,21 +41,28 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ message: 'Insufficient stock to complete this sale' });
     }
 
-    // If a specific size was selected, check and decrement that size's quantity
-    if (size_sold && productRecord.sizes && productRecord.sizes.length > 0) {
+    // Handle sizes logic
+    if (sizes_sold && sizes_sold.length > 0) {
+      // Loop to thoroughly check first to avoid partial commits
+      for (const reqSize of sizes_sold) {
+        const sizeEntry = productRecord.sizes.find(s => s.size === reqSize.size);
+        if (!sizeEntry) return res.status(400).json({ message: `Size ${reqSize.size} not found in inventory for ${productRecord.name}` });
+        if (sizeEntry.quantity < reqSize.quantity) return res.status(400).json({ message: `Only ${sizeEntry.quantity} units of size ${reqSize.size} available` });
+      }
+      // Everything passed, apply decrements
+      for (const reqSize of sizes_sold) {
+        const sizeEntry = productRecord.sizes.find(s => s.size === reqSize.size);
+        sizeEntry.quantity -= reqSize.quantity;
+      }
+    } else if (size_sold && productRecord.sizes && productRecord.sizes.length > 0) {
       const sizeEntry = productRecord.sizes.find(s => s.size === size_sold);
-      if (!sizeEntry) {
-        return res.status(400).json({ message: `Size ${size_sold} not found in inventory` });
-      }
-      if (sizeEntry.quantity < quantitySold) {
-        return res.status(400).json({ message: `Only ${sizeEntry.quantity} units of size ${size_sold} available` });
-      }
-      // Decrement the specific size quantity
+      if (!sizeEntry) return res.status(400).json({ message: `Size ${size_sold} not found in inventory` });
+      if (sizeEntry.quantity < quantitySold) return res.status(400).json({ message: `Only ${sizeEntry.quantity} units of size ${size_sold} available` });
       sizeEntry.quantity -= quantitySold;
     }
 
     // 1. Create Sale
-    const newSale = new Sale({ product, customer: finalCustomer, quantitySold, revenue, status, payment_method, notes, staff, size_sold: size_sold || '' });
+    const newSale = new Sale({ product, customer: finalCustomer, quantitySold, revenue, status, payment_method, notes, staff, size_sold: size_sold || '', sizes_sold: sizes_sold || [] });
     const savedSale = await newSale.save();
 
     // 2. Decrement total inventory
@@ -110,11 +117,14 @@ router.delete('/:id', async (req, res) => {
       productRecord.stockLevel += sale.quantitySold;
 
       // Also restore the specific size quantity if applicable
-      if (sale.size_sold && productRecord.sizes && productRecord.sizes.length > 0) {
-        const sizeEntry = productRecord.sizes.find(s => s.size === sale.size_sold);
-        if (sizeEntry) {
-          sizeEntry.quantity += sale.quantitySold;
+      if (sale.sizes_sold && sale.sizes_sold.length > 0) {
+        for (const saledSize of sale.sizes_sold) {
+          const sizeEntry = productRecord.sizes.find(s => s.size === saledSize.size);
+          if (sizeEntry) sizeEntry.quantity += saledSize.quantity;
         }
+      } else if (sale.size_sold && productRecord.sizes && productRecord.sizes.length > 0) {
+        const sizeEntry = productRecord.sizes.find(s => s.size === sale.size_sold);
+        if (sizeEntry) sizeEntry.quantity += sale.quantitySold;
       }
       await productRecord.save();
     }

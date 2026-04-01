@@ -19,11 +19,16 @@ const saleSchema = new mongoose.Schema({
     required: true,
     min: 1
   },
-  // NEW: Track which size was sold
+  // Keep for backward compatibility
   size_sold: {
     type: String,
     trim: true,
     default: ''
+  },
+  // NEW: Track multiple sizes and quantities
+  sizes_sold: {
+    type: [{ size: String, quantity: Number }],
+    default: []
   },
   revenue: {
     type: Number,
