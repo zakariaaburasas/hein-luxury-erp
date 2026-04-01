@@ -22,6 +22,39 @@ app.use(cors({
 }));
 app.use(express.json({ limit: '20mb' })); // Higher limit for Base64 images
 
+// Vercel Serverless Database Connection Middleware
+const MONGODB_URI = process.env.MONGODB_URI;
+
+app.use(async (req, res, next) => {
+    if (!MONGODB_URI) {
+        console.warn('❌ MONGODB_URI IS MISSING. CRITICAL SYSTEM FAILURE.');
+        return next();
+    }
+    
+    // connection.readyState: 0 = disconnected, 1 = connected, 2 = connecting, 3 = disconnecting
+    if (mongoose.connection.readyState === 1) {
+        return next();
+    }
+
+    if (mongoose.connection.readyState === 2) {
+        return next();
+    }
+
+    try {
+        console.log('🔌 Initializing new Serverless MongoDB connection...');
+        await mongoose.connect(MONGODB_URI, {
+            serverSelectionTimeoutMS: 10000,
+            socketTimeoutMS: 45000,
+            family: 4
+        });
+        console.log('✅ Connected to LIVE MongoDB Atlas Database');
+        next();
+    } catch (err) {
+        console.error('❌ MONGODB CONNECTION ERROR:', err.message);
+        next(err);
+    }
+});
+
 // Routes
 app.use('/api/products', productRoutes);
 app.use('/api/production', productionRoutes);
@@ -53,22 +86,7 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Database Connection Logic
-const MONGODB_URI = process.env.MONGODB_URI;
 
-if (!MONGODB_URI) {
-    console.warn('❌ MONGODB_URI IS MISSING. CRITICAL SYSTEM FAILURE.');
-} else {
-    console.log('🔌 Attempting to connect to MongoDB Atlas...');
-    mongoose.connect(MONGODB_URI, {
-        serverSelectionTimeoutMS: 15000,
-        family: 4
-    }).then(() => {
-        console.log('✅ Connected to LIVE MongoDB Atlas Database');
-    }).catch(err => {
-        console.error('❌ MONGODB CONNECTION ERROR:', err.message);
-    });
-}
 
 // Conditionally listen if not on Vercel (Vercel uses exported app)
 if (!process.env.VERCEL_ENV && !process.env.VERCEL) {
