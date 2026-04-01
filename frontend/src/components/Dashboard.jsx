@@ -121,26 +121,17 @@ export default function Dashboard({ user: initialUser, role, userId, onLogout })
   const hydrate = useCallback(async () => {
     setLoading(true);
     try {
-      const urls = [
-        `${API_URL}/api/finance/profit-loss`,
-        `${API_URL}/api/finance/monthly`,
-        `${API_URL}/api/sales/low-stock`,
-        `${API_URL}/api/sales`,
-        `${API_URL}/api/customers`,
-        `${API_URL}/api/products`,
-        `${API_URL}/api/production`
-      ];
-      const results = await Promise.all(urls.map(u => fetch(u).then(r => r.ok ? r.json() : null)));
-      
-      const [fin, month, alerts, sales, cust, prod, shipyard] = results;
-      if (fin) setFinance(fin);
-      if (month) setMonthlyData(month);
-      if (alerts) setStockAlerts(alerts);
-      if (sales) setRecentSales(sales.slice(0, 5));
-      if (cust) setTotalCustomers(cust.length);
-      if (prod) setTotalProducts(prod.length);
-      if (shipyard) setActiveProduction(shipyard.filter(p => p.status !== 'Delivered').length);
-
+      const res = await fetch(`${API_URL}/api/dashboard/summary`);
+      if (res.ok) {
+        const payload = await res.json();
+        setFinance(payload.finance || { totalRevenue: 0, grossProfit: 0, totalExpenses: 0, netProfit: 0, totalSalesVolume: 0 });
+        setMonthlyData(payload.monthlyData || []);
+        setStockAlerts(payload.stockAlerts || []);
+        setRecentSales(payload.recentSales || []);
+        setTotalCustomers(payload.totalCustomers || 0);
+        setTotalProducts(payload.totalProducts || 0);
+        setActiveProduction(payload.activeProduction || 0);
+      }
     } catch (e) {
       console.error('Dashboard hydration failed:', e);
     } finally {
