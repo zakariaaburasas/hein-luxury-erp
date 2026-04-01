@@ -1,5 +1,10 @@
 const mongoose = require('mongoose');
 
+const sizeEntrySchema = new mongoose.Schema({
+  size: { type: String, required: true, trim: true },
+  quantity: { type: Number, required: true, default: 0, min: 0 }
+}, { _id: false });
+
 const productSchema = new mongoose.Schema({
   name: {
     type: String,
@@ -28,6 +33,12 @@ const productSchema = new mongoose.Schema({
     trim: true,
     default: ''
   },
+  // NEW: Size inventory tracking - array of {size, quantity}
+  sizes: {
+    type: [sizeEntrySchema],
+    default: []
+  },
+  // LEGACY: Keep old size_run for backward compatibility
   size_run: {
     type: String,
     trim: true,

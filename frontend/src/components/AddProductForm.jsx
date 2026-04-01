@@ -1,14 +1,22 @@
 import React, { useState, useRef } from 'react';
-import { X, Package, Upload, Camera } from 'lucide-react';
+import { X, Package, Upload, Camera, Plus, Trash2 } from 'lucide-react';
 
 export default function AddProductForm({ onAdd, onCancel, initialData }) {
+  // Build initial sizes from existing data
+  const getInitialSizes = () => {
+    if (initialData?.sizes && initialData.sizes.length > 0) {
+      return initialData.sizes;
+    }
+    // If old product had size_run text, start with empty sizes
+    return [{ size: '', quantity: '' }];
+  };
+
   const [formData, setFormData] = useState(initialData || {
     name: '',
     sku_code: '',
     category: 'Footwear',
     season_collection: '',
     colorway: '',
-    size_run: '',
     cost_price: '',
     selling_price: '',
     max_discount_allowed: 0,
@@ -17,6 +25,8 @@ export default function AddProductForm({ onAdd, onCancel, initialData }) {
     manufacturer: '',
     image_url: ''
   });
+
+  const [sizes, setSizes] = useState(getInitialSizes());
   const fileInputRef = useRef(null);
 
   const handleChange = (e) => {
@@ -34,25 +44,16 @@ export default function AddProductForm({ onAdd, onCancel, initialData }) {
           const canvas = document.createElement('canvas');
           let width = img.width;
           let height = img.height;
-          const max_size = 800; // compress for Vercel 4.5MB limit
-
+          const max_size = 800;
           if (width > height) {
-            if (width > max_size) {
-              height *= max_size / width;
-              width = max_size;
-            }
+            if (width > max_size) { height *= max_size / width; width = max_size; }
           } else {
-            if (height > max_size) {
-              width *= max_size / height;
-              height = max_size;
-            }
+            if (height > max_size) { width *= max_size / height; height = max_size; }
           }
-
           canvas.width = width;
           canvas.height = height;
           const ctx = canvas.getContext('2d');
           ctx.drawImage(img, 0, 0, width, height);
-          
           const compressedBase64 = canvas.toDataURL('image/jpeg', 0.8);
           setFormData(f => ({ ...f, image_url: compressedBase64 }));
         };
@@ -62,8 +63,28 @@ export default function AddProductForm({ onAdd, onCancel, initialData }) {
     }
   };
 
+  // Size management handlers
+  const addSizeRow = () => setSizes(s => [...s, { size: '', quantity: '' }]);
+  
+  const removeSizeRow = (index) => setSizes(s => s.filter((_, i) => i !== index));
+  
+  const updateSize = (index, field, value) => {
+    setSizes(s => s.map((entry, i) => i === index ? { ...entry, [field]: value } : entry));
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    // Build valid sizes array (filter out empty rows)
+    const validSizes = sizes
+      .filter(s => s.size.trim() !== '' && s.quantity !== '')
+      .map(s => ({ size: s.size.trim(), quantity: parseInt(s.quantity) || 0 }));
+
+    // Auto-calculate total stock from sizes if sizes are defined
+    const totalStockFromSizes = validSizes.length > 0
+      ? validSizes.reduce((sum, s) => sum + s.quantity, 0)
+      : parseInt(formData.stockLevel) || 0;
+
     const payload = {
       ...formData,
       cost_price: parseFloat(formData.cost_price),
@@ -71,12 +92,20 @@ export default function AddProductForm({ onAdd, onCancel, initialData }) {
       costPrice: parseFloat(formData.cost_price),
       salePrice: parseFloat(formData.selling_price),
       max_discount_allowed: parseFloat(formData.max_discount_allowed) || 0,
-      stockLevel: parseInt(formData.stockLevel),
+      stockLevel: totalStockFromSizes,
       min_stock_level: parseInt(formData.min_stock_level),
-      sku_code: formData.sku_code.toUpperCase()
+      sku_code: formData.sku_code.toUpperCase(),
+      sizes: validSizes,
+      // Build human-readable size_run for display
+      size_run: validSizes.map(s => s.size).join(', ')
     };
     onAdd(payload);
   };
+
+  // Calculate total units from sizes for live display
+  const totalUnits = sizes
+    .filter(s => s.size.trim() !== '' && s.quantity !== '')
+    .reduce((sum, s) => sum + (parseInt(s.quantity) || 0), 0);
 
   return (
     <div className="rounded-[1.25rem] border border-brand-border bg-bg-card p-6 md:p-10 shadow-xl max-w-4xl mx-auto overflow-x-hidden animate-in fade-in zoom-in-95 duration-300">
@@ -89,7 +118,7 @@ export default function AddProductForm({ onAdd, onCancel, initialData }) {
               <h3 className="font-serif text-xl text-brand-gold">
                 {initialData ? 'Update Product' : 'Add New Product'}
               </h3>
-              <p className="text-[10px] text-txt-muted uppercase tracking-widest font-bold font-sans">Inventory Ledger v2.4</p>
+              <p className="text-[10px] text-txt-muted uppercase tracking-widest font-bold font-sans">Inventory Ledger v3.0 — Size Tracking</p>
            </div>
         </div>
         <button type="button" onClick={onCancel} className="p-2 rounded-lg hover:bg-brand-gold/10 transition-colors text-txt-muted hover:text-txt-main">
@@ -98,7 +127,7 @@ export default function AddProductForm({ onAdd, onCancel, initialData }) {
       </header>
 
       <form onSubmit={handleSubmit} className="space-y-8">
-        {/* Asset Recognition (Image) */}
+        {/* Image + Name/SKU */}
         <div className="flex flex-col md:flex-row gap-8 items-center">
            <div className="relative group">
               <div 
@@ -123,24 +152,24 @@ export default function AddProductForm({ onAdd, onCancel, initialData }) {
            <div className="flex-1 w-full grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <label className="text-[10px] uppercase tracking-widest text-gray-400 font-bold font-sans">Product Name</label>
-                <input type="text" name="name" className="form-control font-sans" required value={formData.name} onChange={handleChange} placeholder="e.g. Italian Leather Sofa" />
+                <input type="text" name="name" className="form-control font-sans" required value={formData.name} onChange={handleChange} placeholder="e.g. HEIN Nike Premium" />
               </div>
               <div className="space-y-2">
                 <label className="text-[10px] uppercase tracking-widest text-gray-400 font-bold font-sans">SKU Code</label>
-                <input type="text" name="sku_code" className="form-control font-mono" required value={formData.sku_code} onChange={handleChange} placeholder="HEIN-XXXX-001" />
+                <input type="text" name="sku_code" className="form-control font-mono" required value={formData.sku_code} onChange={handleChange} placeholder="HEIN-NK-001" />
               </div>
            </div>
         </div>
 
-        {/* Row 2: Category + Collection */}
+        {/* Category + Collection */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
           <div className="space-y-2">
             <label className="text-[10px] uppercase tracking-widest text-gray-400 font-sans">Category</label>
             <select name="category" className="form-control font-sans" value={formData.category} onChange={handleChange}>
-              <option value="Furniture">Furniture</option>
               <option value="Footwear">Footwear</option>
               <option value="Apparel">Apparel</option>
               <option value="Accessories">Accessories</option>
+              <option value="Furniture">Furniture</option>
             </select>
           </div>
           <div className="space-y-2">
@@ -149,19 +178,81 @@ export default function AddProductForm({ onAdd, onCancel, initialData }) {
           </div>
         </div>
 
-        {/* Row 3: Colorway + Size Run */}
+        {/* Color + Manufacturer */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
           <div className="space-y-2">
             <label className="text-[10px] uppercase tracking-widest text-gray-400 font-sans">Color/Finish</label>
             <input type="text" name="colorway" className="form-control font-sans" value={formData.colorway} onChange={handleChange} placeholder="e.g. Obsidian Black" />
           </div>
           <div className="space-y-2">
-            <label className="text-[10px] uppercase tracking-widest text-gray-400 font-sans">Size/Dimensions</label>
-            <input type="text" name="size_run" className="form-control font-sans" value={formData.size_run} onChange={handleChange} placeholder="e.g. Large" />
+            <label className="text-[10px] uppercase tracking-widest text-gray-400 font-sans">Manufacturer</label>
+            <input type="text" name="manufacturer" className="form-control font-sans" required value={formData.manufacturer} onChange={handleChange} placeholder="e.g. Nike / China Cargo" />
           </div>
         </div>
 
-        {/* Row 4: Pricing Math */}
+        {/* ═══ SIZE INVENTORY SECTION ═══ */}
+        <div className="rounded-[1.25rem] border border-brand-gold/30 bg-brand-gold/5 p-6 space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h4 className="text-brand-gold font-bold text-sm uppercase tracking-widest">Size Inventory</h4>
+              <p className="text-[10px] text-txt-muted mt-0.5">Add each size with its exact quantity. The system auto-tracks what's left per size.</p>
+            </div>
+            {totalUnits > 0 && (
+              <div className="text-right">
+                <p className="text-[10px] text-txt-muted uppercase tracking-widest">Total Units</p>
+                <p className="font-serif text-2xl font-bold text-brand-gold">{totalUnits}</p>
+              </div>
+            )}
+          </div>
+
+          <div className="space-y-3">
+            {/* Header row */}
+            <div className="grid grid-cols-[1fr_1fr_40px] gap-3">
+              <p className="text-[10px] uppercase tracking-widest text-txt-muted font-bold px-1">Size</p>
+              <p className="text-[10px] uppercase tracking-widest text-txt-muted font-bold px-1">Qty in Stock</p>
+              <div />
+            </div>
+
+            {sizes.map((entry, index) => (
+              <div key={index} className="grid grid-cols-[1fr_1fr_40px] gap-3 items-center">
+                <input
+                  type="text"
+                  className="form-control font-mono text-center"
+                  placeholder="e.g. 40"
+                  value={entry.size}
+                  onChange={e => updateSize(index, 'size', e.target.value)}
+                />
+                <input
+                  type="number"
+                  className="form-control font-sans text-center"
+                  placeholder="e.g. 150"
+                  min="0"
+                  value={entry.quantity}
+                  onChange={e => updateSize(index, 'quantity', e.target.value)}
+                />
+                <button
+                  type="button"
+                  onClick={() => removeSizeRow(index)}
+                  disabled={sizes.length === 1}
+                  className="w-10 h-10 flex items-center justify-center rounded-lg text-txt-muted hover:text-red-500 hover:bg-red-500/10 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                >
+                  <Trash2 size={16} />
+                </button>
+              </div>
+            ))}
+
+            <button
+              type="button"
+              onClick={addSizeRow}
+              className="w-full flex items-center justify-center gap-2 py-3 border border-dashed border-brand-gold/40 rounded-xl text-brand-gold text-sm hover:bg-brand-gold/10 transition-all font-bold tracking-widest"
+            >
+              <Plus size={16} />
+              Add Size
+            </button>
+          </div>
+        </div>
+
+        {/* Pricing */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6">
           <div className="space-y-2">
             <label className="text-[10px] uppercase tracking-widest text-gray-400 font-sans">Cost ($)</label>
@@ -173,23 +264,29 @@ export default function AddProductForm({ onAdd, onCancel, initialData }) {
           </div>
           <div className="space-y-2">
             <label className="text-[10px] uppercase tracking-widest text-brand-gold font-sans font-bold">Max Discount ($)</label>
-            <input type="number" name="max_discount_allowed" className="form-control border-brand-gold/30 font-sans" required value={formData.max_discount_allowed} onChange={handleChange} />
+            <input type="number" name="max_discount_allowed" className="form-control border-brand-gold/30 font-sans" value={formData.max_discount_allowed} onChange={handleChange} />
           </div>
         </div>
 
-        {/* Row 5: Stock Logic */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6">
+        {/* Stock threshold */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
           <div className="space-y-2">
-            <label className="text-[10px] uppercase tracking-widest text-gray-400 font-sans">Units in Stock</label>
-            <input type="number" name="stockLevel" className="form-control font-sans" required value={formData.stockLevel} onChange={handleChange} />
+            <label className="text-[10px] uppercase tracking-widest text-gray-400 font-sans">
+              {totalUnits > 0 ? `Total Units (auto: ${totalUnits})` : 'Units in Stock (if no sizes)'}
+            </label>
+            <input
+              type="number"
+              name="stockLevel"
+              className="form-control font-sans"
+              value={totalUnits > 0 ? totalUnits : formData.stockLevel}
+              onChange={handleChange}
+              readOnly={totalUnits > 0}
+              placeholder={totalUnits > 0 ? 'Auto-calculated from sizes' : 'Enter total units'}
+            />
           </div>
           <div className="space-y-2">
-            <label className="text-[10px] uppercase tracking-widest text-gray-400 font-sans">Low Stock Alert</label>
+            <label className="text-[10px] uppercase tracking-widest text-gray-400 font-sans">Low Stock Alert Threshold</label>
             <input type="number" name="min_stock_level" className="form-control font-sans" required value={formData.min_stock_level} onChange={handleChange} />
-          </div>
-          <div className="space-y-2">
-            <label className="text-[10px] uppercase tracking-widest text-gray-400 font-sans">Manufacturer</label>
-            <input type="text" name="manufacturer" className="form-control font-sans" required value={formData.manufacturer} onChange={handleChange} placeholder="e.g. HEIN Works" />
           </div>
         </div>
 

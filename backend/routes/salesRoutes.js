@@ -18,14 +18,14 @@ router.get('/', async (req, res) => {
   }
 });
 
-// POST new sale — auto-decrements stock and triggers low stock alert
+// POST new sale — auto-decrements stock and specific size quantity
 router.post('/', async (req, res) => {
   try {
-    const { product, customer, quantitySold, revenue, status, payment_method, notes, customerName, customerPhone, vipStatus, staff } = req.body;
+    const { product, customer, quantitySold, revenue, status, payment_method, notes, customerName, customerPhone, vipStatus, staff, size_sold } = req.body;
 
     let finalCustomer = (customer && customer.trim() !== '') ? customer : undefined;
     
-    // Inline CRM Creation Logic: If Walk-In types a name, auto-create their VIP Profile!
+    // Inline CRM Creation Logic
     if (!finalCustomer && customerName && customerName.trim() !== '') {
         const newCust = await Customer.create({
             name: customerName.trim(),
@@ -41,11 +41,24 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ message: 'Insufficient stock to complete this sale' });
     }
 
+    // If a specific size was selected, check and decrement that size's quantity
+    if (size_sold && productRecord.sizes && productRecord.sizes.length > 0) {
+      const sizeEntry = productRecord.sizes.find(s => s.size === size_sold);
+      if (!sizeEntry) {
+        return res.status(400).json({ message: `Size ${size_sold} not found in inventory` });
+      }
+      if (sizeEntry.quantity < quantitySold) {
+        return res.status(400).json({ message: `Only ${sizeEntry.quantity} units of size ${size_sold} available` });
+      }
+      // Decrement the specific size quantity
+      sizeEntry.quantity -= quantitySold;
+    }
+
     // 1. Create Sale
-    const newSale = new Sale({ product, customer: finalCustomer, quantitySold, revenue, status, payment_method, notes, staff });
+    const newSale = new Sale({ product, customer: finalCustomer, quantitySold, revenue, status, payment_method, notes, staff, size_sold: size_sold || '' });
     const savedSale = await newSale.save();
 
-    // 2. Decrement inventory
+    // 2. Decrement total inventory
     productRecord.stockLevel -= quantitySold;
     await productRecord.save();
 
@@ -77,7 +90,6 @@ router.post('/', async (req, res) => {
 // GET low stock products
 router.get('/low-stock', async (req, res) => {
   try {
-    // Find all products and filter in JS (MongoMemoryServer doesn't support $expr well)
     const allProducts = await Product.find();
     const lowStock = allProducts.filter(p => p.stockLevel <= p.min_stock_level);
     res.status(200).json(lowStock);
@@ -86,16 +98,26 @@ router.get('/low-stock', async (req, res) => {
   }
 });
 
-// DELETE /api/sales/:id — restores stock to product
+// DELETE /api/sales/:id — restores stock and size quantity
 router.delete('/:id', async (req, res) => {
   try {
     const sale = await Sale.findById(req.params.id);
     if (!sale) return res.status(404).json({ message: 'Sale not found' });
 
-    // 1. Restore stock to the product
-    await Product.findByIdAndUpdate(sale.product, {
-      $inc: { stockLevel: sale.quantitySold }
-    });
+    // 1. Restore total stock
+    const productRecord = await Product.findById(sale.product);
+    if (productRecord) {
+      productRecord.stockLevel += sale.quantitySold;
+
+      // Also restore the specific size quantity if applicable
+      if (sale.size_sold && productRecord.sizes && productRecord.sizes.length > 0) {
+        const sizeEntry = productRecord.sizes.find(s => s.size === sale.size_sold);
+        if (sizeEntry) {
+          sizeEntry.quantity += sale.quantitySold;
+        }
+      }
+      await productRecord.save();
+    }
 
     // 2. Remove from customer purchase history
     if (sale.customer) {

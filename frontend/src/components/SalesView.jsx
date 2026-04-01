@@ -51,7 +51,8 @@ export default function SalesView({ searchQuery, userId }) {
     quantitySold: 1, 
     discountAmount: 0, 
     status: 'Paid', 
-    payment_method: 'Zaad' 
+    payment_method: 'Zaad',
+    size_sold: ''
   });
   const [submitting, setSubmitting] = useState(false);
 
@@ -90,6 +91,11 @@ export default function SalesView({ searchQuery, userId }) {
     if (selectedProduct.stockLevel < formData.quantitySold) {
       return setToast({ type: 'alert', message: `Only ${selectedProduct.stockLevel} units available for ${selectedProduct.name}` });
     }
+
+    if (selectedProduct.sizes && selectedProduct.sizes.length > 0 && !formData.size_sold) {
+      return setToast({ type: 'alert', message: `You must select a specific size for this product.` });
+    }
+
     
     if (parseFloat(formData.discountAmount || 0) > (selectedProduct.max_discount_allowed || 0)) {
       return setToast({ type: 'alert', message: `Security Lock: Maximum discount allowed is $${selectedProduct.max_discount_allowed || 0}` });
@@ -111,7 +117,7 @@ export default function SalesView({ searchQuery, userId }) {
         fetchAll(); // Refresh all to get joined data
         setToast({ type: 'success', message: `Sale of ${formData.quantitySold}x ${selectedProduct.name} recorded.` });
         setShowForm(false);
-        setFormData({ product: '', customer: '', customerName: '', customerPhone: '', addToVip: false, quantitySold: 1, discountAmount: 0, status: 'Paid', payment_method: 'Zaad' });
+        setFormData({ product: '', customer: '', customerName: '', customerPhone: '', addToVip: false, quantitySold: 1, discountAmount: 0, status: 'Paid', payment_method: 'Zaad', size_sold: '' });
         setSelectedProduct(null);
       } else {
         setToast({ type: 'alert', message: data.message || 'Sale failed.' });
@@ -250,16 +256,52 @@ export default function SalesView({ searchQuery, userId }) {
             </div>
 
             {selectedProduct && (
-              <div className="rounded-xl bg-bg-main border border-brand-gold/20 p-4 md:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-inner">
-                <div>
-                  <p className="text-[9px] text-txt-muted uppercase tracking-widest font-bold">Inventory Ref</p>
-                  <p className="text-txt-main font-bold">{selectedProduct.name}</p>
-                  <p className="text-[10px] text-brand-gold font-mono uppercase tracking-tighter">SKU ARCHIVE: {selectedProduct.sku_code}</p>
+              <div className="space-y-4">
+                <div className="rounded-xl bg-bg-main border border-brand-gold/20 p-4 md:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-inner">
+                  <div>
+                    <p className="text-[9px] text-txt-muted uppercase tracking-widest font-bold">Inventory Ref</p>
+                    <p className="text-txt-main font-bold">{selectedProduct.name}</p>
+                    <p className="text-[10px] text-brand-gold font-mono uppercase tracking-tighter">SKU ARCHIVE: {selectedProduct.sku_code}</p>
+                  </div>
+                  <div className="sm:text-right border-t border-brand-border sm:border-0 pt-3 sm:pt-0 w-full sm:w-auto">
+                    <p className="text-[9px] text-txt-muted uppercase font-bold">Live Stock</p>
+                    <p className={`text-xl font-serif font-bold tabular-nums ${selectedProduct.stockLevel < 5 ? 'text-red-500 animate-pulse' : 'text-txt-main'}`}>{selectedProduct.stockLevel} units</p>
+                  </div>
                 </div>
-                <div className="sm:text-right border-t border-brand-border sm:border-0 pt-3 sm:pt-0 w-full sm:w-auto">
-                  <p className="text-[9px] text-txt-muted uppercase font-bold">Live Stock</p>
-                  <p className={`text-xl font-serif font-bold tabular-nums ${selectedProduct.stockLevel < 5 ? 'text-red-500 animate-pulse' : 'text-txt-main'}`}>{selectedProduct.stockLevel} units</p>
-                </div>
+
+                {selectedProduct.sizes && selectedProduct.sizes.length > 0 && (
+                  <div className="space-y-3">
+                    <label className="text-[10px] uppercase tracking-widest text-brand-gold font-bold">Select Valid Size</label>
+                    <div className="flex flex-wrap gap-3">
+                      {selectedProduct.sizes.map((s, idx) => {
+                        const isSelected = formData.size_sold === s.size;
+                        const isSoldOut = s.quantity === 0;
+                        return (
+                          <button
+                            key={idx}
+                            type="button"
+                            disabled={isSoldOut}
+                            onClick={() => setFormData(f => ({ ...f, size_sold: s.size }))}
+                            className={`relative px-4 py-2.5 rounded-lg border font-mono font-bold transition-all ${
+                              isSoldOut 
+                                ? 'border-brand-border/30 bg-bg-main/50 text-txt-muted/30 cursor-not-allowed hidden' // changed from line-through to hidden later maybe? 
+                                : isSelected
+                                ? 'border-brand-gold bg-brand-gold/20 text-brand-gold shadow-[0_0_15px_rgba(212,175,55,0.2)]'
+                                : 'border-brand-border bg-bg-card text-txt-main hover:border-brand-gold/50 hover:bg-brand-gold/5'
+                            } ${isSoldOut ? 'opacity-40' : ''}`}
+                          >
+                            <span className={isSoldOut ? 'line-through' : ''}>{s.size}</span>
+                            {!isSoldOut && (
+                              <span className={`absolute -top-2 -right-2 text-[9px] px-1.5 py-0.5 rounded-full ${isSelected ? 'bg-brand-gold text-brand-black' : 'bg-bg-main border border-brand-border text-txt-muted'}`}>
+                                {s.quantity}
+                              </span>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
@@ -320,7 +362,7 @@ export default function SalesView({ searchQuery, userId }) {
                 </div>
                 <h4 className="text-sm font-bold text-txt-main mb-1 truncate">{s.product?.name || 'Unknown Article'}</h4>
                 <div className="flex items-center justify-between text-[10px] text-txt-muted mb-4">
-                   <span>Qty: {s.quantitySold} · {s.payment_method}</span>
+                   <span>Qty: {s.quantitySold} {s.size_sold ? `· Size: ${s.size_sold}` : ''} · {s.payment_method}</span>
                    <span className="font-mono text-brand-gold bg-brand-gold/5 px-2 rounded tracking-tighter">{s.staff?.name || 'System'}</span>
                 </div>
                 <div className="flex justify-between items-center border-t border-brand-border/50 pt-4 relative z-10">
@@ -357,9 +399,17 @@ export default function SalesView({ searchQuery, userId }) {
                 {filteredSales.map(s => (
                   <tr key={s._id} className="hover:bg-brand-gold/5 transition-colors group">
                     <td className="p-5 font-mono text-[10px] text-txt-muted uppercase tracking-tighter">{new Date(s.createdAt).toLocaleString()}</td>
-                    <td className="p-5 font-mono text-[10px] text-brand-gold font-bold uppercase transition-transform group-hover:translate-x-1 inline-block">{s.product?.sku_code}</td>
+                    <td className="p-5 font-mono text-[10px] text-brand-gold font-bold uppercase transition-transform group-hover:translate-x-1">{s.product?.sku_code}</td>
                     <td className="p-5">
-                       <div className="text-txt-main font-bold">{s.product?.name} <span className="text-[10px] text-txt-muted/60 opacity-60">x{s.quantitySold}</span></div>
+                       <div className="text-txt-main font-bold">
+                         {s.product?.name} 
+                         <span className="text-[10px] text-txt-muted/60 opacity-60 ml-2">x{s.quantitySold}</span>
+                         {s.size_sold && (
+                           <span className="ml-2 text-[10px] bg-brand-gold/10 text-brand-gold px-1.5 py-0.5 rounded font-mono border border-brand-gold/20">
+                             Size {s.size_sold}
+                           </span>
+                         )}
+                       </div>
                        <div className="text-[10px] text-txt-muted/80 flex items-center gap-1 mt-0.5 italic">
                           <User size={10} className="opacity-40" /> Handled by {s.staff?.name || 'Manual Terminal'}
                        </div>

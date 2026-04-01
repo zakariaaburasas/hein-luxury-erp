@@ -19,6 +19,12 @@ const saleSchema = new mongoose.Schema({
     required: true,
     min: 1
   },
+  // NEW: Track which size was sold
+  size_sold: {
+    type: String,
+    trim: true,
+    default: ''
+  },
   revenue: {
     type: Number,
     required: true
