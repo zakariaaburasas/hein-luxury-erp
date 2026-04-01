@@ -52,7 +52,7 @@ export default function AddProductForm({ onAdd, onCancel, initialData }) {
   };
 
   return (
-    <div className="rounded-[1.25rem] border border-brand-border bg-brand-gray p-6 md:p-10 shadow-xl max-w-4xl mx-auto overflow-x-hidden animate-in fade-in zoom-in-95 duration-300">
+    <div className="rounded-[1.25rem] border border-brand-border bg-bg-card p-6 md:p-10 shadow-xl max-w-4xl mx-auto overflow-x-hidden animate-in fade-in zoom-in-95 duration-300">
       <header className="mb-8 flex items-center justify-between border-b border-brand-border pb-4">
         <div className="flex items-center gap-3">
            <div className="w-10 h-10 rounded-xl bg-brand-gold/10 flex items-center justify-center text-brand-gold border border-brand-gold/20">
@@ -62,10 +62,10 @@ export default function AddProductForm({ onAdd, onCancel, initialData }) {
               <h3 className="font-serif text-xl text-brand-gold">
                 {initialData ? 'Update Product' : 'Add New Product'}
               </h3>
-              <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold font-sans">Inventory Ledger v2.4</p>
+              <p className="text-[10px] text-txt-muted uppercase tracking-widest font-bold font-sans">Inventory Ledger v2.4</p>
            </div>
         </div>
-        <button type="button" onClick={onCancel} className="p-2 rounded-lg hover:bg-white/5 transition-colors text-gray-500 hover:text-white">
+        <button type="button" onClick={onCancel} className="p-2 rounded-lg hover:bg-brand-gold/10 transition-colors text-txt-muted hover:text-txt-main">
           <X size={20} />
         </button>
       </header>
@@ -170,7 +170,7 @@ export default function AddProductForm({ onAdd, onCancel, initialData }) {
           <button type="submit" className="btn-gold flex-1 order-1 sm:order-2 font-bold tracking-widest">
             {initialData ? 'Update Product' : 'Add Product'}
           </button>
-          <button type="button" onClick={onCancel} className="p-3 px-8 text-gray-500 hover:text-white transition-colors order-2 sm:order-1 text-center font-sans">
+          <button type="button" onClick={onCancel} className="p-3 px-8 text-txt-muted hover:text-txt-main transition-colors order-2 sm:order-1 text-center font-sans">
             Cancel
           </button>
         </div>

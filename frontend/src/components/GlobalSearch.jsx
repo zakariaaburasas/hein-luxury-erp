@@ -86,7 +86,7 @@ export default function GlobalSearch({ onNavigate }) {
           value={query}
           onChange={e => { setQuery(e.target.value); setOpen(true); }}
           onFocus={() => setOpen(true)}
-          className="bg-brand-gray border border-brand-border rounded-full pl-9 pr-8 py-2 text-xs w-full sm:w-72 focus:outline-none focus:border-brand-gold/50 sm:focus:w-96 transition-all duration-300 text-white placeholder:text-gray-500 shadow-inner"
+          className="bg-bg-main border border-brand-border rounded-full pl-9 pr-10 py-2 text-xs w-full focus:outline-none focus:border-brand-gold/60 transition-all duration-300 text-txt-main placeholder:text-txt-muted/50 shadow-inner"
         />
         {query && (
           <button onClick={() => { setQuery(''); setOpen(false); }}
@@ -104,36 +104,36 @@ export default function GlobalSearch({ onNavigate }) {
 
       {/* Results Dropdown */}
       {open && query && loaded && (
-        <div className="absolute top-full -right-4 sm:right-0 mt-2 w-[calc(100vw-2rem)] sm:w-[520px] rounded-[1rem] border border-brand-border bg-[#1A1A1A] shadow-[0_20px_50px_rgba(0,0,0,0.8)] z-[9999] max-h-[70vh] flex flex-col overflow-hidden">
+        <div className="absolute top-full -right-4 sm:right-0 mt-2 w-[calc(100vw-2rem)] sm:w-[540px] rounded-[1rem] border border-brand-border bg-bg-card shadow-[0_20px_50px_rgba(0,0,0,0.3)] z-[9999] max-h-[70vh] flex flex-col overflow-hidden backdrop-blur-md">
           {!hasResults ? (
             <div className="px-5 py-6 text-center">
-              <p className="text-gray-500 text-xs font-mono">No results for "{query}"</p>
+              <p className="text-txt-muted text-xs font-mono">No results for "{query}"</p>
             </div>
           ) : (
             <div className="max-h-[480px] overflow-y-auto">
-              <div className="flex items-center justify-between px-5 py-3 border-b border-brand-border/50">
-                <span className="text-[0.6rem] uppercase tracking-widest text-gray-500 font-bold">Global Search</span>
+              <div className="flex items-center justify-between px-5 py-3 border-b border-brand-border/50 bg-bg-main/50">
+                <span className="text-[0.6rem] uppercase tracking-widest text-txt-muted font-bold">Global Search</span>
                 <span className="text-[0.6rem] text-brand-gold font-bold">{totalResults} result{totalResults !== 1 ? 's' : ''}</span>
               </div>
 
               {/* Sales Results */}
               {matchedSales.length > 0 && (
                 <div>
-                  <div className="px-5 py-2 flex items-center gap-2 bg-white/[0.02]">
+                  <div className="px-5 py-2 flex items-center gap-2 bg-brand-gold/[0.03]">
                     <ShoppingBag size={11} className="text-brand-gold" />
                     <span className="text-[0.6rem] uppercase tracking-widest text-brand-gold font-bold">Sales ({matchedSales.length})</span>
                   </div>
                   {matchedSales.map(s => (
                     <button key={s._id}
                       onClick={() => { onNavigate('transactions'); setOpen(false); setQuery(''); }}
-                      className="w-full flex items-center justify-between px-5 py-3 hover:bg-white/5 transition-colors border-b border-brand-border/20 last:border-0 text-left">
+                      className="w-full flex items-center justify-between px-5 py-3 hover:bg-brand-gold/[0.04] transition-colors border-b border-brand-border/30 last:border-0 text-left">
                       <div>
-                        <p className="text-sm text-white font-medium">
+                        <p className="text-sm text-txt-main font-medium">
                           {s.product?.name || 'Product'}
-                          <span className="text-xs text-gray-500 font-mono ml-2">×{s.quantitySold}</span>
+                          <span className="text-xs text-txt-muted font-mono ml-2">×{s.quantitySold}</span>
                           <span className="text-[0.6rem] font-mono text-brand-gold ml-2">{s.product?.sku_code}</span>
                         </p>
-                        <p className="text-xs text-gray-500 mt-0.5">
+                        <p className="text-xs text-txt-muted mt-0.5">
                           {s.customer?.name || 'Walk-in'}
                           {s.customer?.phoneNumber && <span className="ml-2 font-mono">{s.customer.phoneNumber}</span>}
                           <span className="ml-2">· {new Date(s.createdAt).toLocaleDateString()}</span>
@@ -151,23 +151,23 @@ export default function GlobalSearch({ onNavigate }) {
               {/* Product Results */}
               {matchedProducts.length > 0 && (
                 <div>
-                  <div className="px-5 py-2 flex items-center gap-2 bg-white/[0.02]">
-                    <Package size={11} className="text-blue-400" />
-                    <span className="text-[0.6rem] uppercase tracking-widest text-blue-400 font-bold">Inventory ({matchedProducts.length})</span>
+                  <div className="px-5 py-2 flex items-center gap-2 bg-blue-500/[0.03]">
+                    <Package size={11} className="text-blue-500" />
+                    <span className="text-[0.6rem] uppercase tracking-widest text-blue-500 font-bold">Inventory ({matchedProducts.length})</span>
                   </div>
                   {matchedProducts.map(p => (
                     <button key={p._id}
                       onClick={() => { onNavigate('inventory'); setOpen(false); setQuery(''); }}
-                      className="w-full flex items-center justify-between px-5 py-3 hover:bg-white/5 transition-colors border-b border-brand-border/20 last:border-0 text-left">
+                      className="w-full flex items-center justify-between px-5 py-3 hover:bg-blue-500/[0.04] transition-colors border-b border-brand-border/30 last:border-0 text-left">
                       <div>
-                        <p className="text-sm text-white font-medium">{p.name}
+                        <p className="text-sm text-txt-main font-medium">{p.name}
                           <span className="text-[0.6rem] font-mono text-brand-gold ml-2">{p.sku_code}</span>
                         </p>
-                        <p className="text-xs text-gray-500 mt-0.5">{p.category} · {p.colorway || '—'} · {p.size_run || '—'}</p>
+                        <p className="text-xs text-txt-muted mt-0.5">{p.category} · {p.colorway || '—'} · {p.size_run || '—'}</p>
                       </div>
                       <div className="text-right shrink-0 ml-4">
-                        <p className="font-serif font-bold text-white">${p.selling_price}</p>
-                        <p className={`text-[0.6rem] font-bold ${p.stockLevel <= p.min_stock_level ? 'text-amber-400' : 'text-gray-500'}`}>{p.stockLevel} in stock</p>
+                        <p className="font-serif font-bold text-txt-main">${p.selling_price}</p>
+                        <p className={`text-[0.6rem] font-bold ${p.stockLevel <= p.min_stock_level ? 'text-amber-500' : 'text-txt-muted'}`}>{p.stockLevel} in stock</p>
                       </div>
                     </button>
                   ))}
@@ -177,17 +177,17 @@ export default function GlobalSearch({ onNavigate }) {
               {/* Customer Results */}
               {matchedCustomers.length > 0 && (
                 <div>
-                  <div className="px-5 py-2 flex items-center gap-2 bg-white/[0.02]">
-                    <User size={11} className="text-purple-400" />
-                    <span className="text-[0.6rem] uppercase tracking-widest text-purple-400 font-bold">VIP Clients ({matchedCustomers.length})</span>
+                  <div className="px-5 py-2 flex items-center gap-2 bg-purple-500/[0.03]">
+                    <User size={11} className="text-purple-500" />
+                    <span className="text-[0.6rem] uppercase tracking-widest text-purple-500 font-bold">VIP Clients ({matchedCustomers.length})</span>
                   </div>
                   {matchedCustomers.map(c => (
                     <button key={c._id}
                       onClick={() => { onNavigate('consumer'); setOpen(false); setQuery(''); }}
-                      className="w-full flex items-center justify-between px-5 py-3 hover:bg-white/5 transition-colors border-b border-brand-border/20 last:border-0 text-left">
+                      className="w-full flex items-center justify-between px-5 py-3 hover:bg-purple-500/[0.04] transition-colors border-b border-brand-border/30 last:border-0 text-left">
                       <div>
-                        <p className="text-sm text-white font-medium">{c.name}</p>
-                        <p className="text-xs text-gray-500 mt-0.5">{c.phoneNumber || 'No phone'} · {c.address || 'No address'}</p>
+                        <p className="text-sm text-txt-main font-medium">{c.name}</p>
+                        <p className="text-xs text-txt-muted mt-0.5">{c.phoneNumber || 'No phone'} · {c.address || 'No address'}</p>
                       </div>
                       <div className="text-right shrink-0 ml-4">
                         <span className="text-[0.6rem] uppercase tracking-widest font-bold text-brand-gold px-2 py-1 rounded-full bg-brand-gold/10 border border-brand-gold/20">{c.vipStatus}</span>

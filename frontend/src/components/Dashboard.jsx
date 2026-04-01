@@ -41,16 +41,16 @@ function StatCard({ title, value, subtitle, trend, isPrimary, isNegative, icon: 
       {trend !== undefined && (
         <div className={`absolute top-5 right-5 flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-bold ${
           trend > 0
-            ? isPrimary ? 'bg-black/20 text-black' : 'bg-green-500/15 text-green-400'
-            : isPrimary ? 'bg-black/20 text-black' : 'bg-red-500/15 text-red-400'
+            ? isPrimary ? 'bg-black/20 text-black' : 'bg-green-500/15 text-green-600 dark:text-green-400'
+            : isPrimary ? 'bg-black/20 text-black' : 'bg-red-500/15 text-red-600 dark:text-red-400'
         }`}>
           {trend > 0 ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
           {Math.abs(trend)}%
         </div>
       )}
-      <p className={`text-xs font-medium tracking-widest uppercase mb-2 ${isPrimary ? 'text-black/60' : 'text-gray-400'}`}>{title}</p>
-      <h3 className={`font-serif text-3xl font-bold tracking-wide ${isNegative && !isPrimary ? 'text-red-400' : ''}`}>{value}</h3>
-      {subtitle && <p className={`text-xs mt-1.5 ${isPrimary ? 'text-black/50' : 'text-gray-500'}`}>{subtitle}</p>}
+      <p className={`text-xs font-medium tracking-widest uppercase mb-2 ${isPrimary ? 'text-black/60' : 'text-txt-muted opacity-70'}`}>{title}</p>
+      <h3 className={`font-serif text-3xl font-bold tracking-wide ${isNegative && !isPrimary ? 'text-red-500' : ''}`}>{value}</h3>
+      {subtitle && <p className={`text-xs mt-1.5 ${isPrimary ? 'text-black/50' : 'text-txt-muted opacity-60'}`}>{subtitle}</p>}
     </div>
   );
 }
@@ -160,7 +160,7 @@ export default function Dashboard({ user: initialUser, role, userId, onLogout })
         className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-full transition-all duration-200 ${
           isActive
             ? 'bg-brand-gold text-white dark:text-brand-black shadow-[0_4px_14px_rgba(212,175,55,0.35)]'
-            : 'text-txt-muted hover:text-txt-main hover:bg-white/5'
+            : 'text-txt-muted hover:text-txt-main hover:bg-brand-gold/10'
         }`}
       >
         <Icon size={17} strokeWidth={isActive ? 2.5 : 1.8} />
@@ -213,15 +213,15 @@ export default function Dashboard({ user: initialUser, role, userId, onLogout })
                 {recentSales.map(s => (
                   <div key={s._id} className="flex items-center justify-between py-3 border-b border-brand-border/50 last:border-0">
                     <div>
-                      <p className="text-sm font-medium text-white">{s.product?.name || 'Unknown'}</p>
-                      <p className="text-xs text-gray-500 mt-0.5 font-mono">
-                        {s.product?.sku_code && <span className="text-brand-gold">{s.product.sku_code} · </span>}
+                      <p className="text-sm font-medium text-txt-main tracking-tight">{s.product?.name || 'Unknown'}</p>
+                      <p className="text-[10px] text-txt-muted mt-0.5 font-mono">
+                        {s.product?.sku_code && <span className="text-brand-gold font-bold">{s.product.sku_code} · </span>}
                         {s.customer?.name || 'Walk-in'} · ×{s.quantitySold}
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className="font-serif text-base font-bold text-white">${isStaff ? '***' : s.revenue?.toLocaleString()}</p>
-                      <p className="text-[0.65rem] text-gray-500">{new Date(s.createdAt).toLocaleDateString()}</p>
+                      <p className="font-serif text-base font-bold text-txt-main tabular-nums">${isStaff ? '***' : s.revenue?.toLocaleString()}</p>
+                      <p className="text-[0.65rem] text-txt-muted opacity-60 font-medium">{new Date(s.createdAt).toLocaleDateString()}</p>
                     </div>
                   </div>
                 ))}
@@ -230,31 +230,31 @@ export default function Dashboard({ user: initialUser, role, userId, onLogout })
           </div>
 
           <div className="col-span-1 lg:col-span-4 grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-4">
-            <div className="rounded-[1.25rem] bg-brand-gray border border-brand-border p-5 flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-brand-black flex items-center justify-center shrink-0">
+            <div className="rounded-[1.25rem] bg-bg-card border border-brand-border p-5 flex items-center gap-4 transition-all hover:border-brand-gold/20 shadow-sm">
+              <div className="w-12 h-12 rounded-xl bg-bg-main flex items-center justify-center shrink-0 border border-brand-border/50">
                 <Package size={20} className="text-brand-gold" />
               </div>
               <div>
-                <p className="text-[10px] text-gray-400 uppercase tracking-widest leading-tight">SKUs Catalogued</p>
-                <p className="font-serif text-2xl font-bold text-white">{totalProducts}</p>
+                <p className="text-[10px] text-txt-muted uppercase tracking-widest leading-tight font-bold">SKUs Catalogued</p>
+                <p className="font-serif text-2xl font-bold text-txt-main">{totalProducts}</p>
               </div>
             </div>
-            <div className="rounded-[1.25rem] bg-brand-gray border border-brand-border p-5 flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-brand-black flex items-center justify-center shrink-0">
+            <div className="rounded-[1.25rem] bg-bg-card border border-brand-border p-5 flex items-center gap-4 transition-all hover:border-brand-gold/20 shadow-sm">
+              <div className="w-12 h-12 rounded-xl bg-bg-main flex items-center justify-center shrink-0 border border-brand-border/50">
                 <Users size={20} className="text-brand-gold" />
               </div>
               <div>
-                <p className="text-[10px] text-gray-400 uppercase tracking-widest leading-tight">VIP Clients</p>
-                <p className="font-serif text-2xl font-bold text-white">{totalCustomers}</p>
+                <p className="text-[10px] text-txt-muted uppercase tracking-widest leading-tight font-bold">VIP Clients</p>
+                <p className="font-serif text-2xl font-bold text-txt-main">{totalCustomers}</p>
               </div>
             </div>
-            <div className="rounded-[1.25rem] bg-brand-gray border border-brand-border p-5 flex items-center gap-4">
-              <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${stockAlerts.length > 0 ? 'bg-amber-400/10' : 'bg-brand-black'}`}>
-                <AlertTriangle size={20} className={stockAlerts.length > 0 ? 'text-amber-400' : 'text-gray-600'} />
+            <div className="rounded-[1.25rem] bg-bg-card border border-brand-border p-5 flex items-center gap-4 transition-all hover:border-brand-gold/20 shadow-sm">
+              <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 border border-brand-border/50 ${stockAlerts.length > 0 ? 'bg-amber-500/10' : 'bg-bg-main'}`}>
+                <AlertTriangle size={20} className={stockAlerts.length > 0 ? 'text-amber-500' : 'text-txt-muted opacity-40'} />
               </div>
               <div>
-                <p className="text-[10px] text-gray-400 uppercase tracking-widest leading-tight">Stock Alerts</p>
-                <p className={`font-serif text-2xl font-bold ${stockAlerts.length > 0 ? 'text-amber-400' : 'text-gray-500'}`}>
+                <p className="text-[10px] text-txt-muted uppercase tracking-widest leading-tight font-bold">Stock Alerts</p>
+                <p className={`font-serif text-2xl font-bold ${stockAlerts.length > 0 ? 'text-amber-500' : 'text-txt-muted'}`}>
                   {stockAlerts.length}
                 </p>
               </div>
@@ -283,7 +283,7 @@ export default function Dashboard({ user: initialUser, role, userId, onLogout })
   };
 
   return (
-    <div className="flex h-screen bg-brand-black text-white font-sans overflow-hidden selection:bg-brand-gold selection:text-brand-black relative">
+    <div className="flex h-screen bg-bg-main text-txt-main font-sans overflow-hidden selection:bg-brand-gold selection:text-brand-black relative">
       {isSidebarOpen && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] lg:hidden transition-opacity" onClick={() => setIsSidebarOpen(false)} />
       )}
@@ -376,19 +376,21 @@ export default function Dashboard({ user: initialUser, role, userId, onLogout })
             </div>
           </div>
           
-          <div className="flex items-center gap-2 md:gap-4">
-            <div className="hidden md:block w-[180px] lg:w-[260px] mr-1">
+          <div className="flex items-center gap-3 md:gap-6">
+            <div className="hidden md:block w-[200px] lg:w-[350px] mr-2">
               <GlobalSearch onNavigate={setActiveTab} />
             </div>
             <button 
               onClick={toggleTheme}
-              className="p-2 rounded-xl bg-bg-card border border-brand-border text-brand-gold hover:bg-brand-gold hover:text-white transition-all shadow-sm"
+              className="p-2 rounded-xl bg-bg-card border border-brand-border text-brand-gold hover:bg-brand-gold hover:text-white transition-all shadow-sm shrink-0"
               title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`}
             >
               {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
             </button>
-            <NotificationPanel onNavigate={setActiveTab} />
-            <div onClick={() => setActiveTab('profile')} className="flex items-center gap-2 md:gap-3 ml-2 pl-2 md:pl-4 border-l border-brand-border cursor-pointer">
+            <div className="shrink-0">
+              <NotificationPanel onNavigate={setActiveTab} />
+            </div>
+            <div onClick={() => setActiveTab('profile')} className="flex items-center gap-2 md:gap-3 ml-2 pl-2 md:pl-6 border-l border-brand-border cursor-pointer shrink-0">
               <div className="w-8 h-8 md:w-9 md:h-9 rounded-full overflow-hidden border-2 border-brand-gold/20 shadow-lg shrink-0">
                  <img src={avatarPath} alt="Avatar" className="w-full h-full object-cover" />
               </div>

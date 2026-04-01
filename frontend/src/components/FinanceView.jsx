@@ -120,15 +120,15 @@ export default function FinanceView() {
         </div>
       </div>
 
-      <div className="grid grid-cols-12 gap-8">
+      <div className="grid lg:grid-cols-12 grid-cols-1 gap-8">
         {/* Trend Table */}
-        <div className="col-span-8 rounded-[1.25rem] border border-brand-border bg-brand-gray shadow-xl overflow-hidden">
-            <div className="p-6 border-b border-brand-border flex justify-between items-center">
-                <h3 className="font-serif text-lg text-white">Monthly Sales Pipeline</h3>
-                <BarChart2 size={16} className="text-gray-500" />
+        <div className="lg:col-span-8 rounded-[1.25rem] border border-brand-border bg-bg-card shadow-xl overflow-hidden">
+            <div className="p-6 border-b border-brand-border flex justify-between items-center bg-bg-card">
+                <h3 className="font-serif text-lg text-txt-main font-bold">Monthly Sales Pipeline</h3>
+                <BarChart2 size={16} className="text-txt-muted" />
             </div>
             <table className="w-full text-left text-sm">
-                <thead className="bg-black/30 text-[0.6rem] uppercase tracking-widest text-brand-gold">
+                <thead className="bg-bg-main text-[0.65rem] uppercase tracking-[0.2em] font-black text-brand-gold">
                     <tr>
                         <th className="px-6 py-4 font-medium">Accounting Period</th>
                         <th className="px-6 py-4 font-medium">Total Orders</th>
@@ -138,12 +138,12 @@ export default function FinanceView() {
                 </thead>
                 <tbody className="divide-y divide-brand-border/50">
                     {monthlyData.length === 0 ? (
-                        <tr><td colSpan="4" className="px-6 py-10 text-center text-gray-500 font-mono text-xs">Awaiting data reconciliation...</td></tr>
+                        <tr><td colSpan="4" className="px-6 py-10 text-center text-txt-muted font-mono text-xs">Awaiting data reconciliation...</td></tr>
                     ) : monthlyData.map((d, i) => (
-                        <tr key={i} className="hover:bg-white/5 transition-colors">
-                            <td className="px-6 py-4 font-serif text-base text-white">{d.month} 2026</td>
-                            <td className="px-6 py-4 text-xs font-mono text-gray-400">{d.orders} OPERATIONS</td>
-                            <td className="px-6 py-4 font-medium text-gray-200">${d.revenue.toLocaleString()}</td>
+                        <tr key={i} className="hover:bg-brand-gold/5 transition-colors">
+                            <td className="px-6 py-4 font-serif text-base text-txt-main font-bold">{d.month} 2026</td>
+                            <td className="px-6 py-4 text-xs font-mono text-txt-muted">{d.orders} OPERATIONS</td>
+                            <td className="px-6 py-4 font-medium text-txt-main opacity-80">${d.revenue.toLocaleString()}</td>
                             <td className="px-6 py-4 text-right">
                                 <span className="inline-flex items-center gap-1 text-[0.6rem] font-bold text-green-400 uppercase tracking-widest">
                                     Finalized <ArrowRight size={10} />
@@ -156,30 +156,30 @@ export default function FinanceView() {
         </div>
 
         {/* Breakdown Card */}
-        <div className="col-span-4 space-y-6">
-            <div className="rounded-[1.25rem] border border-brand-border bg-brand-gray p-6 shadow-xl">
-                 <h3 className="font-serif text-base text-white mb-6">Allocation Summary</h3>
+        <div className="lg:col-span-4 space-y-6">
+            <div className="rounded-[1.25rem] border border-brand-border bg-bg-card p-6 shadow-xl">
+                 <h3 className="font-serif text-base text-txt-main font-bold mb-6">Allocation Summary</h3>
                  <div className="space-y-4">
                     <div className="space-y-2">
-                        <div className="flex justify-between text-[0.65rem] uppercase tracking-widest text-gray-500">
+                        <div className="flex justify-between text-[0.65rem] uppercase tracking-widest text-txt-muted font-bold">
                             <span>Inventory Cost</span>
-                            <span className="text-white">${metrics.totalCOGS.toLocaleString()}</span>
+                            <span className="text-txt-main">${metrics.totalCOGS.toLocaleString()}</span>
                         </div>
-                        <div className="h-1 bg-brand-black rounded-full overflow-hidden">
+                        <div className="h-1 bg-bg-main rounded-full overflow-hidden">
                             <div className="h-full bg-brand-gold/60" style={{ width: `${(metrics.totalCOGS/metrics.totalRevenue)*100}%` }}></div>
                         </div>
                     </div>
                     <div className="space-y-2">
-                        <div className="flex justify-between text-[0.65rem] uppercase tracking-widest text-gray-500">
+                        <div className="flex justify-between text-[0.65rem] uppercase tracking-widest text-txt-muted font-bold">
                             <span>Operational Burn</span>
-                            <span className="text-white">${metrics.totalExpenses.toLocaleString()}</span>
+                            <span className="text-txt-main">${metrics.totalExpenses.toLocaleString()}</span>
                         </div>
-                        <div className="h-1 bg-brand-black rounded-full overflow-hidden">
+                        <div className="h-1 bg-bg-main rounded-full overflow-hidden">
                             <div className="h-full bg-red-400/60" style={{ width: `${(metrics.totalExpenses/metrics.totalRevenue)*100}%` }}></div>
                         </div>
                     </div>
                     <div className="pt-4 border-t border-brand-border mt-4">
-                        <p className="text-[0.6rem] text-gray-500 italic leading-relaxed">
+                        <p className="text-[0.6rem] text-txt-muted italic leading-relaxed">
                             Figures aggregated across {metrics.totalSalesVolume} secure endpoint transmissions. 0% data lag detected in system cluster.
                         </p>
                     </div>

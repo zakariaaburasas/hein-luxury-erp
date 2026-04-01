@@ -88,11 +88,11 @@ export default function InventoryView({ searchQuery, userId }) {
     <div>
       <header className="mb-10 flex items-center justify-between border-b border-brand-border pb-6">
         <div>
-          <h2 className="font-serif text-2xl tracking-wide text-white">Inventory Master</h2>
-          <p className="mt-1 text-sm text-gray-400">
+          <h2 className="font-serif text-2xl tracking-wide text-txt-main">Inventory Master</h2>
+          <p className="mt-1 text-sm text-txt-muted">
             {products.length} SKU{products.length !== 1 ? 's' : ''} registered
             {lowStockCount > 0 && (
-              <span className="ml-3 text-amber-400 font-bold">
+              <span className="ml-3 text-amber-500 font-bold dark:text-amber-400">
                 · <AlertTriangle size={12} className="inline mb-0.5" /> {lowStockCount} low stock alert{lowStockCount > 1 ? 's' : ''}
               </span>
             )}
@@ -113,49 +113,51 @@ export default function InventoryView({ searchQuery, userId }) {
               const isLow = p.stockLevel <= p.min_stock_level;
               const isCritical = p.stockLevel <= Math.floor(p.min_stock_level / 2);
               return (
-                <div key={p._id} className={`rounded-[1.25rem] border p-5 bg-brand-gray transition-all ${
+                <div key={p._id} className={`rounded-[1.25rem] border p-5 bg-bg-card transition-all ${
                   isCritical ? 'border-red-500/50' : isLow ? 'border-amber-500/50' : 'border-brand-border'
                 }`}>
                   <div className="flex gap-4 mb-4">
-                    <div className="w-16 h-16 shrink-0 rounded-lg bg-black overflow-hidden border border-brand-border">
+                    <div className="w-16 h-16 shrink-0 rounded-lg bg-bg-main overflow-hidden border border-brand-border">
                       {p.image_url ? (
                         <img src={p.image_url} alt={p.name} className="w-full h-full object-cover" />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center text-[10px] text-gray-600">N/A</div>
+                        <div className="w-full h-full flex items-center justify-center text-[10px] text-txt-muted">N/A</div>
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
                         <span className="font-mono text-[10px] font-bold text-brand-gold truncate">{p.sku_code}</span>
-                        {isLow && <AlertTriangle size={10} className={isCritical ? 'text-red-400' : 'text-amber-400'} />}
+                        {isLow && <AlertTriangle size={10} className={isCritical ? 'text-red-500' : 'text-amber-500'} />}
                       </div>
-                      <h4 className="text-sm font-semibold text-white truncate">{p.name}</h4>
-                      <p className="text-[10px] text-gray-500 uppercase tracking-widest mt-1">{p.category} · {p.colorway}</p>
+                      <h4 className="text-sm font-semibold text-txt-main truncate">{p.name}</h4>
+                      <p className="text-[10px] text-txt-muted uppercase tracking-widest mt-1">{p.category} · {p.colorway}</p>
                     </div>
                   </div>
                   
                   <div className="grid grid-cols-2 gap-3 pb-4 border-b border-brand-border/50">
                     <div>
-                      <p className="text-[10px] text-gray-500 uppercase tracking-widest mb-0.5">Stock</p>
-                      <p className={`text-sm font-bold ${isLow ? (isCritical ? 'text-red-400' : 'text-amber-400') : 'text-white'}`}>
+                      <p className="text-[10px] text-txt-muted uppercase tracking-widest mb-0.5">Stock</p>
+                      <p className={`text-sm font-bold ${isLow ? (isCritical ? 'text-red-500' : 'text-amber-500') : 'text-txt-main'}`}>
                         {p.stockLevel} units
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className="text-[10px] text-gray-500 uppercase tracking-widest mb-0.5">Retail Price</p>
+                      <p className="text-[10px] text-txt-muted uppercase tracking-widest mb-0.5">Retail Price</p>
                       <p className="text-sm font-serif font-bold text-brand-gold">${p.selling_price || p.salePrice || '0'}</p>
                     </div>
                   </div>
 
                   <div className="flex justify-between items-center mt-4">
-                    <div className="text-[10px] text-gray-500 font-mono">
+                    <div className="text-[10px] text-txt-muted font-mono">
                       {p.season_collection}
                     </div>
                     <div className="flex gap-2">
-                       <button onClick={() => setEditingProduct(p)} className="p-2 bg-brand-black border border-brand-border rounded-lg text-gray-400 hover:text-brand-gold">
+                       <button onClick={() => setEditingProduct(p)} className="p-2 bg-bg-main border border-brand-border rounded-lg text-txt-muted hover:text-brand-gold transition-colors">
+                         <span className="sr-only">Edit</span>
                          <Edit3 size={14} />
                        </button>
-                       <button onClick={() => handleDeleteProduct(p._id)} className="p-2 bg-brand-black border border-brand-border rounded-lg text-gray-400 hover:text-red-400">
+                       <button onClick={() => handleDeleteProduct(p._id)} className="p-2 bg-bg-main border border-brand-border rounded-lg text-txt-muted hover:text-red-500 transition-colors">
+                         <span className="sr-only">Delete</span>
                          <Trash2 size={14} />
                        </button>
                     </div>
@@ -166,9 +168,9 @@ export default function InventoryView({ searchQuery, userId }) {
           </div>
 
           {/* Desktop Table View */}
-          <section className="hidden lg:block overflow-x-auto rounded-[1.25rem] border border-brand-border bg-brand-gray shadow-xl">
+          <section className="hidden lg:block overflow-x-auto rounded-[1.25rem] border border-brand-border bg-bg-card shadow-xl">
             <table className="w-full text-left text-sm">
-              <thead className="bg-black/40 text-xs uppercase tracking-widest text-brand-gold">
+              <thead className="bg-bg-main/50 text-xs uppercase tracking-widest text-brand-gold">
                 <tr>
                   <th className="border-b border-brand-border px-5 py-4">Image</th>
                   <th className="border-b border-brand-border px-5 py-4">SKU Code</th>
@@ -191,68 +193,68 @@ export default function InventoryView({ searchQuery, userId }) {
                     <tr
                       key={p._id}
                       className={`transition-colors ${
-                        isCritical ? 'bg-red-900/5 hover:bg-red-900/10' :
-                        isLow ? 'bg-amber-900/5 hover:bg-amber-900/10' :
-                        'hover:bg-white/5'
+                        isCritical ? 'bg-red-500/5 hover:bg-red-500/10 text-red-500' :
+                        isLow ? 'bg-amber-500/5 hover:bg-amber-500/10' :
+                        'hover:bg-brand-gold/5'
                       }`}
                     >
                       <td className="px-5 py-4">
                         {p.image_url ? (
-                          <div className="w-12 h-12 rounded bg-black flex items-center justify-center overflow-hidden border border-brand-border shadow-md">
+                          <div className="w-12 h-12 rounded bg-bg-main flex items-center justify-center overflow-hidden border border-brand-border shadow-md">
                             <img src={p.image_url} alt={p.name} className="w-full h-full object-cover" />
                           </div>
                         ) : (
-                          <div className="w-12 h-12 rounded bg-brand-black border border-brand-border/50 border-dashed flex items-center justify-center text-gray-700 font-mono text-[0.55rem] tracking-widest text-center shadow-inner">
+                          <div className="w-12 h-12 rounded bg-bg-main border border-brand-border/50 border-dashed flex items-center justify-center text-txt-muted font-mono text-[0.55rem] tracking-widest text-center shadow-inner">
                             N/A
                           </div>
                         )}
                       </td>
                       <td className="px-5 py-4">
                         <div className="flex items-center gap-2">
-                          {isLow && <AlertTriangle size={12} className={isCritical ? 'text-red-400' : 'text-amber-400'} />}
-                          <span className={`font-mono text-xs font-bold ${isLow ? (isCritical ? 'text-red-400' : 'text-amber-400') : 'text-brand-gold'}`}>
+                          {isLow && <AlertTriangle size={12} className={isCritical ? 'text-red-500' : 'text-amber-500'} />}
+                          <span className={`font-mono text-xs font-bold ${isLow ? (isCritical ? 'text-red-500' : 'text-amber-500') : 'text-brand-gold'}`}>
                             {p.sku_code || '—'}
                           </span>
                         </div>
                       </td>
-                      <td className="px-5 py-4 font-medium text-white">{p.name}</td>
-                      <td className="px-5 py-4 text-xs text-gray-400">{p.season_collection || '—'}</td>
-                      <td className="px-5 py-4 text-xs text-gray-400">{p.colorway || '—'}</td>
-                      <td className="px-5 py-4 text-xs text-gray-400 font-mono">{p.size_run || '—'}</td>
+                      <td className="px-5 py-4 font-medium text-txt-main">{p.name}</td>
+                      <td className="px-5 py-4 text-xs text-txt-muted">{p.season_collection || '—'}</td>
+                      <td className="px-5 py-4 text-xs text-txt-muted">{p.colorway || '—'}</td>
+                      <td className="px-5 py-4 text-xs text-txt-muted font-mono">{p.size_run || '—'}</td>
                       <td className="px-5 py-4">
                         <span className={`px-2 py-1 rounded-full text-[10px] font-bold border ${
                           p.category === 'Footwear' ? 'bg-brand-gold/10 text-brand-gold border-brand-gold/30' :
-                          p.category === 'Apparel' ? 'bg-blue-500/10 text-blue-400 border-blue-500/30' :
-                          p.category === 'Furniture' ? 'bg-purple-500/10 text-purple-400 border-purple-500/30' :
-                          'bg-gray-500/10 text-gray-400 border-gray-500/30'
+                          p.category === 'Apparel' ? 'bg-blue-500/10 text-blue-500 border-blue-500/10' :
+                          p.category === 'Furniture' ? 'bg-purple-500/10 text-purple-500 border-purple-500/10' :
+                          'bg-txt-muted/10 text-txt-muted border-txt-muted/10'
                         }`}>
                           {p.category}
                         </span>
                       </td>
                       <td className="px-5 py-4">
                         {isLow ? (
-                          <span className={`font-bold ${isCritical ? 'text-red-400' : 'text-amber-400'}`}>
+                          <span className={`font-bold ${isCritical ? 'text-red-500' : 'text-amber-500'}`}>
                             {p.stockLevel} ⚠
                           </span>
                         ) : (
-                          <span className="text-gray-200">{p.stockLevel}</span>
+                          <span className="text-txt-main font-bold">{p.stockLevel}</span>
                         )}
                       </td>
-                      <td className="px-5 py-4 text-gray-400 font-mono text-xs">${p.cost_price || p.costPrice || '—'}</td>
-                      <td className="px-5 py-4 font-serif text-base font-bold text-white">${p.selling_price || p.salePrice || '—'}</td>
+                      <td className="px-5 py-4 text-txt-muted font-mono text-xs">${p.cost_price || p.costPrice || '—'}</td>
+                      <td className="px-5 py-4 font-serif text-base font-bold text-brand-gold">${p.selling_price || p.salePrice || '—'}</td>
                       <td className="px-5 py-4 text-center">
                         <div className="flex items-center justify-center gap-3">
                           <button 
                             title="Edit SKU" 
                             onClick={() => setEditingProduct(p)}
-                            className="p-1.5 text-gray-400 hover:text-brand-gold hover:bg-brand-gold/10 rounded-md transition-all"
+                            className="p-1.5 text-txt-muted hover:text-brand-gold hover:bg-brand-gold/10 rounded-md transition-all"
                           >
                             <Edit3 size={16} />
                           </button>
                           <button 
                             title="Delete SKU" 
                             onClick={() => handleDeleteProduct(p._id)}
-                            className="p-1.5 text-gray-400 hover:text-red-400 hover:bg-red-400/10 rounded-md transition-all"
+                            className="p-1.5 text-txt-muted hover:text-red-500 hover:bg-red-500/10 rounded-md transition-all"
                           >
                             <Trash2 size={16} />
                           </button>

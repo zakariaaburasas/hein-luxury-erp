@@ -177,7 +177,7 @@ export default function ExpenseView() {
                   </thead>
                   <tbody className="divide-y divide-brand-border">
                     {expenses.map(e => (
-                      <tr key={e._id} className="hover:bg-white/5 transition-colors">
+                      <tr key={e._id} className="hover:bg-brand-gold/5 transition-colors">
                         <td className="px-5 py-4 font-mono text-xs text-gray-400">{new Date(e.date).toLocaleDateString()}</td>
                         <td className="px-5 py-4">
                           <span className="px-2 py-1 rounded-full text-[0.6rem] font-bold uppercase tracking-widest" style={{ background: `${CATEGORY_COLORS[e.category] || '#9ca3af'}20`, color: CATEGORY_COLORS[e.category] || '#9ca3af', border: `1px solid ${CATEGORY_COLORS[e.category] || '#9ca3af'}40` }}>

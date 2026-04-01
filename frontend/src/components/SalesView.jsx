@@ -15,14 +15,14 @@ export function Toast({ toast, onClose }) {
   const isAlert = toast.type === 'alert';
 
   return (
-    <div className={`fixed bottom-6 right-6 z-50 flex items-start gap-3 rounded-[1rem] border px-5 py-4 shadow-2xl backdrop-blur-sm transition-all animate-[slideUp_0.3s_ease] max-w-sm ${
+    <div className={`fixed bottom-6 right-6 z-50 flex items-start gap-3 rounded-[1rem] border px-5 py-4 shadow-2xl backdrop-blur-md transition-all animate-[slideUp_0.3s_ease] max-w-sm ${
       isAlert
-        ? 'bg-amber-900/80 border-amber-500/50 text-amber-200'
-        : 'bg-green-900/80 border-green-500/50 text-green-200'
+        ? 'bg-amber-500/10 border-amber-500/20 text-amber-600 dark:bg-amber-900/80 dark:border-amber-500/50 dark:text-amber-200'
+        : 'bg-green-500/10 border-green-500/20 text-green-600 dark:bg-green-900/80 dark:border-green-500/50 dark:text-green-200'
     }`}>
       {isAlert
-        ? <AlertTriangle size={20} className="text-amber-400 shrink-0 mt-0.5" />
-        : <CheckCircle size={20} className="text-green-400 shrink-0 mt-0.5" />
+        ? <AlertTriangle size={20} className="text-amber-500 shrink-0 mt-0.5" />
+        : <CheckCircle size={20} className="text-green-500 shrink-0 mt-0.5" />
       }
       <div className="flex-1">
         <p className="font-bold text-sm">{isAlert ? '⚠️ System Alert / Error' : '✅ Sale Recorded'}</p>
