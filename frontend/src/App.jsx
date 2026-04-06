@@ -5,8 +5,9 @@ import { auth, googleProvider } from './firebase';
 import { signInWithPopup, signInWithEmailAndPassword, onAuthStateChanged, signOut } from 'firebase/auth';
 
 function App() {
-  const [authState, setAuthState] = useState({ 
-    isAuthenticated: false, user: null, role: null, id: null, photoURL: null 
+  const [authState, setAuthState] = useState(() => {
+    const saved = sessionStorage.getItem('hein_auth');
+    return saved ? JSON.parse(saved) : { isAuthenticated: false, user: null, role: null, id: null, photoURL: null };
   });
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -24,7 +25,7 @@ function App() {
         await handleFirebaseUser(firebaseUser);
       } else {
         // Check legacy session
-        const saved = localStorage.getItem('hein_auth');
+        const saved = sessionStorage.getItem('hein_auth');
         if (saved) {
           try { setAuthState(JSON.parse(saved)); } catch {}
         }
@@ -54,7 +55,7 @@ function App() {
           email: firebaseUser.email
         };
         setAuthState(session);
-        localStorage.setItem('hein_auth', JSON.stringify(session));
+        sessionStorage.setItem('hein_auth', JSON.stringify(session));
         setError('');
       } else {
         setError(data.message || 'Access denied. Contact your administrator.');
@@ -103,7 +104,7 @@ function App() {
           photoURL: data.user.avatar || null
         };
         setAuthState(session);
-        localStorage.setItem('hein_auth', JSON.stringify(session));
+        sessionStorage.setItem('hein_auth', JSON.stringify(session));
       } else {
         setError(data.message || 'Invalid username or password.');
       }
@@ -118,7 +119,7 @@ function App() {
   const handleLogout = async () => {
     await signOut(auth).catch(() => {});
     setAuthState({ isAuthenticated: false, user: null, role: null, id: null });
-    localStorage.removeItem('hein_auth');
+    sessionStorage.removeItem('hein_auth');
     setUsername('');
     setPassword('');
   };

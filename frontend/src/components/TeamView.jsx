@@ -20,6 +20,8 @@ export default function TeamView() {
 
   useEffect(() => {
     fetchTeam();
+    const interval = setInterval(fetchTeam, 15000); // Refresh list every 15 seconds
+    return () => clearInterval(interval);
   }, []);
 
   const fetchTeam = async () => {
@@ -226,7 +228,16 @@ export default function TeamView() {
                     const now = serverTime.getTime();
                     const lastSeenDate = member.lastSeen ? new Date(member.lastSeen).getTime() : 0;
                     const diffMinutes = (now - lastSeenDate) / 1000 / 60;
-                    const isOnline = lastSeenDate > 0 && Math.abs(diffMinutes) < 5; // Use absolute diff to handle minor drift
+                    const isOnline = lastSeenDate > 0 && Math.abs(diffMinutes) < 3; // Precise 3 minute threshold
+                    
+                    const formatLastSeen = (dateString) => {
+                        if (!dateString) return 'Never Online';
+                        const d = new Date(dateString);
+                        const isToday = new Date().toDateString() === d.toDateString();
+                        const datePart = isToday ? 'Today' : d.toLocaleDateString();
+                        const timePart = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                        return `${datePart} at ${timePart}`;
+                    };
                     
                     return (
                         <>
@@ -234,12 +245,19 @@ export default function TeamView() {
                                 member.status === 'suspended' ? 'bg-red-500' : 
                                 (isOnline ? 'bg-green-400 shadow-[0_0_8px_rgba(34,197,94,0.6)] animate-pulse' : 'bg-gray-600')
                             }`}></div>
-                            <span className={`text-[9px] uppercase font-bold tracking-[0.1em] ${
-                                member.status === 'suspended' ? 'text-red-500' : 
-                                (isOnline ? 'text-green-400' : 'text-gray-500')
-                            }`}>
-                                {member.status === 'suspended' ? 'Suspended' : (isOnline ? 'ACTIVE NOW' : 'OFFLINE')}
-                            </span>
+                            <div className="flex flex-col">
+                                <span className={`text-[9px] uppercase font-black tracking-[0.1em] ${
+                                    member.status === 'suspended' ? 'text-red-500' : 
+                                    (isOnline ? 'text-green-400' : 'text-gray-500')
+                                }`}>
+                                    {member.status === 'suspended' ? 'Suspended' : (isOnline ? 'Active Now' : 'Offline')}
+                                </span>
+                                {!isOnline && member.status !== 'suspended' && (
+                                    <span className="text-[7px] text-txt-muted/60 uppercase font-bold tracking-tighter">
+                                        Last Seen: {formatLastSeen(member.lastSeen)}
+                                    </span>
+                                )}
+                            </div>
                         </>
                     );
                 })()}

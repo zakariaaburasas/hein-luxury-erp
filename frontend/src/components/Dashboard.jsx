@@ -256,6 +256,24 @@ export default function Dashboard({ user: initialUser, role, userId, onLogout })
     );
   };
 
+   useEffect(() => {
+    // Initial system setup if needed
+    fetch(`${API_URL}/api/auth/setup`, { method: 'POST' }).catch(() => {});
+    
+    // Background Ping (Hearbeat) — Tells the system this user is active
+    const pingServer = () => {
+      if (userId) {
+        fetch(`${API_URL}/api/users/ping/${userId}`, { method: 'PUT' }).catch(() => {});
+      }
+    };
+    
+    pingServer(); // Initial ping
+    const interval = setInterval(pingServer, 120000); // Ping every 2 minutes
+    
+    return () => clearInterval(interval);
+  }, [userId]);
+
+  // Main navigation logic
   const renderContent = () => {
     if (isStaff && (activeTab === 'report' || activeTab === 'expenses')) return <OverviewContent />;
     
