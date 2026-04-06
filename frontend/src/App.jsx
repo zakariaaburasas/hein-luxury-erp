@@ -141,35 +141,39 @@ function App() {
         <div className="hidden lg:flex flex-col justify-between flex-1 bg-gradient-to-br from-[#0a0a0a] via-[#0f0f0f] to-[#050505] border-r border-[#1a1a1a] p-16 relative overflow-hidden">
           <div className="absolute inset-0 opacity-[0.03]" style={{backgroundImage: 'radial-gradient(circle at 20% 50%, #D4AF37 0%, transparent 60%), radial-gradient(circle at 80% 20%, #D4AF37 0%, transparent 40%)'}} />
           <div className="relative z-10">
-            <h1 className="font-serif text-6xl font-bold tracking-[0.3em] text-brand-gold">HEIN</h1>
-            <p className="text-[10px] uppercase tracking-[0.4em] text-gray-600 mt-2 font-bold">Elevating Men's Fashion</p>
+            <h1 className="font-serif text-5xl lg:text-7xl font-bold tracking-[0.3em] text-brand-gold">HEIN</h1>
+            <p className="text-[10px] uppercase tracking-[0.5em] text-gray-500 mt-4 font-black">Elevating Men's Fashion</p>
           </div>
-          <div className="relative z-10 space-y-8">
+          <div className="relative z-10 space-y-10">
             {[
-              { title: 'Real-Time Inventory', desc: 'Track every size, every unit in real-time' },
-              { title: 'Point of Sale', desc: 'Process transactions with multi-size precision' },
-              { title: 'Financial Intelligence', desc: 'P&L, expenses and revenue analytics' },
-              { title: 'VIP Network', desc: 'Manage your elite clientele database' },
+              { title: 'Global Inventory Master', desc: 'Real-time synchronization across all command clusters' },
+              { title: 'Premium Point of Sale', desc: 'Secure high-end transaction processing' },
+              { title: 'Financial Intelligence', desc: 'Advanced P&L aggregation and operational burn tracking' },
+              { title: 'Executive CRM', desc: 'Elite client relationship management' },
             ].map((f, i) => (
-              <div key={i} className="flex items-start gap-4">
-                <div className="w-1 h-8 bg-brand-gold/40 rounded-full mt-0.5 shrink-0" />
+              <div key={i} className="flex items-start gap-5">
+                <div className="w-0.5 h-10 bg-brand-gold/30 rounded-full mt-1 shrink-0" />
                 <div>
-                  <p className="text-white font-bold text-sm">{f.title}</p>
-                  <p className="text-gray-600 text-xs mt-0.5">{f.desc}</p>
+                  <p className="text-white font-bold text-base tracking-wide">{f.title}</p>
+                  <p className="text-gray-500 text-xs mt-1 leading-relaxed">{f.desc}</p>
                 </div>
               </div>
             ))}
           </div>
-          <p className="relative z-10 text-[9px] uppercase tracking-[0.3em] text-gray-800 font-bold">© {new Date().getFullYear()} HEIN Corp · All Rights Reserved</p>
+          
+          <div className="relative z-10 space-y-2 border-t border-white/5 pt-8">
+            <p className="text-[9px] uppercase tracking-[0.3em] text-brand-gold font-bold">Zakaria Adam · Founder & CEO</p>
+            <p className="text-[8px] uppercase tracking-[0.2em] text-gray-700 font-bold">WeChat: Aburasas · +252 63 4508824</p>
+          </div>
         </div>
 
         {/* Right login panel */}
-        <div className="flex flex-1 items-center justify-center p-6 lg:p-16">
-          <div className="w-full max-w-md space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+        <div className="flex flex-1 items-center justify-center p-6 lg:p-16 bg-[#030303]">
+          <div className="w-full max-w-md space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
             {/* Mobile logo */}
             <div className="lg:hidden text-center mb-10">
               <h1 className="font-serif text-5xl font-bold tracking-[0.3em] text-brand-gold">HEIN</h1>
-              <p className="text-[9px] uppercase tracking-[0.3em] text-gray-600 mt-2 font-bold">Luxury ERP Engine</p>
+              <p className="text-[9px] uppercase tracking-[0.3em] text-gray-600 mt-2 font-bold">Elevating Men's Fashion</p>
             </div>
 
             <div>
@@ -238,9 +242,14 @@ function App() {
               </button>
             </form>
 
-            <p className="text-center text-[9px] uppercase tracking-[0.3em] text-gray-800 font-bold">
-              Authorized Personnel Only · HEIN Corp
-            </p>
+            <div className="text-center space-y-2">
+              <p className="text-[9px] uppercase tracking-[0.3em] text-gray-800 font-bold">
+                Authorized Personnel Only · HEIN Corp
+              </p>
+              <p className="text-[8px] uppercase tracking-[0.2em] text-gray-900 font-bold opacity-50">
+                Support: Zakariaaburasas@gmail.com
+              </p>
+            </div>
           </div>
         </div>
       </div>
