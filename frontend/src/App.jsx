@@ -119,6 +119,8 @@ function App() {
     await signOut(auth).catch(() => {});
     setAuthState({ isAuthenticated: false, user: null, role: null, id: null });
     localStorage.removeItem('hein_auth');
+    setUsername('');
+    setPassword('');
   };
 
   // Loading screen while checking auth state

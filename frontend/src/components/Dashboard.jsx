@@ -310,7 +310,7 @@ export default function Dashboard({ user: initialUser, role, userId, onLogout })
               <div className="space-y-1">
                 <NavItem id="report" label="P&L Reports" Icon={BarChart2} />
                 <NavItem id="expenses" label="Accounting" Icon={BookOpen} />
-                <NavItem id="team" label="Command Center" Icon={Shield} />
+                <NavItem id="team" label="Executive HQ" Icon={Shield} />
               </div>
             </div>
           )}
