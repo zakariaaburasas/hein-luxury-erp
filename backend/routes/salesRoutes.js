@@ -145,16 +145,36 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
-// UPDATE sale status (e.g., Unpaid -> Paid)
+// UPDATE sale status (e.g., Unpaid -> Paid or Refunded)
 router.put('/:id/status', async (req, res) => {
   try {
-    const sale = await Sale.findByIdAndUpdate(
-      req.params.id, 
-      { status: req.body.status },
-      { new: true }
-    ).populate('product').populate('customer');
+    const sale = await Sale.findById(req.params.id);
     if (!sale) return res.status(404).json({ message: 'Sale not found' });
-    res.status(200).json(sale);
+
+    // If marking as Refunded for the first time, restore stock and size
+    if (req.body.status === 'Refunded' && sale.status !== 'Refunded') {
+      const productRecord = await Product.findById(sale.product);
+      if (productRecord) {
+        productRecord.stockLevel += sale.quantitySold;
+
+        if (sale.sizes_sold && sale.sizes_sold.length > 0) {
+          for (const saledSize of sale.sizes_sold) {
+            const sizeEntry = productRecord.sizes.find(s => s.size === saledSize.size);
+            if (sizeEntry) sizeEntry.quantity += saledSize.quantity;
+          }
+        } else if (sale.size_sold && productRecord.sizes && productRecord.sizes.length > 0) {
+          const sizeEntry = productRecord.sizes.find(s => s.size === sale.size_sold);
+          if (sizeEntry) sizeEntry.quantity += sale.quantitySold;
+        }
+        await productRecord.save();
+      }
+    }
+
+    sale.status = req.body.status;
+    const updatedSale = await sale.save();
+    
+    // For population safely return minimal success or repopulate if needed
+    res.status(200).json(updatedSale);
   } catch (error) {
     res.status(500).json({ message: 'Error updating sale status', error: error.message });
   }
