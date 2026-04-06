@@ -1,110 +1,242 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Dashboard from './components/Dashboard';
 import API_URL from './api/config';
+import { auth, googleProvider } from './firebase';
+import { signInWithPopup, signInWithEmailAndPassword, onAuthStateChanged, signOut } from 'firebase/auth';
 
 function App() {
-  const [auth, setAuth] = useState(() => {
-    const saved = localStorage.getItem('hein_auth');
-    return saved ? JSON.parse(saved) : { isAuthenticated: false, user: null, role: null, id: null };
+  const [authState, setAuthState] = useState({ 
+    isAuthenticated: false, user: null, role: null, id: null, photoURL: null 
   });
-
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [checkingAuth, setCheckingAuth] = useState(true);
 
-  React.useEffect(() => {
-    // Initial system setup if needed
+  // On mount, check if user was previously signed in via Firebase
+  useEffect(() => {
     fetch(`${API_URL}/api/auth/setup`, { method: 'POST' }).catch(() => {});
+
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        // User was previously signed in — restore session
+        await handleFirebaseUser(firebaseUser);
+      } else {
+        // Check legacy session
+        const saved = localStorage.getItem('hein_auth');
+        if (saved) {
+          try { setAuthState(JSON.parse(saved)); } catch {}
+        }
+      }
+      setCheckingAuth(false);
+    });
+    return () => unsubscribe();
   }, []);
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    setIsLoggingIn(true);
-    setError('');
-
+  // After Firebase login (Google or Email), register/fetch user from our backend
+  const handleFirebaseUser = async (firebaseUser) => {
     try {
-      const response = await fetch(`${API_URL}/api/auth/login`, {
+      const idToken = await firebaseUser.getIdToken();
+      const res = await fetch(`${API_URL}/api/auth/firebase-login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password })
+        body: JSON.stringify({ idToken })
       });
-
-      const data = await response.json();
+      const data = await res.json();
       if (data.success) {
-        const authData = { 
-          isAuthenticated: true, 
-          user: data.user.name, 
+        const session = {
+          isAuthenticated: true,
+          user: data.user.name,
           role: data.user.role,
-          id: data.user.id
+          id: data.user.id,
+          photoURL: firebaseUser.photoURL || null,
+          email: firebaseUser.email
         };
-        setAuth(authData);
-        localStorage.setItem('hein_auth', JSON.stringify(authData));
+        setAuthState(session);
+        localStorage.setItem('hein_auth', JSON.stringify(session));
+        setError('');
       } else {
-        setError(data.message || 'Invalid Credentials');
+        setError(data.message || 'Access denied. Contact your administrator.');
+        await signOut(auth);
       }
     } catch (err) {
-      setError('Connection to HEIN Engine failed.');
+      setError('Authentication failed. Please try again.');
+      await signOut(auth);
+    }
+  };
+
+  // Google Sign-In
+  const handleGoogleLogin = async () => {
+    setIsLoggingIn(true);
+    setError('');
+    try {
+      const result = await signInWithPopup(auth, googleProvider);
+      await handleFirebaseUser(result.user);
+    } catch (err) {
+      if (err.code !== 'auth/popup-closed-by-user') {
+        setError('Google sign-in failed. Please try again.');
+      }
     } finally {
       setIsLoggingIn(false);
     }
   };
 
-  const handleLogout = () => {
-    setAuth({ isAuthenticated: false, user: null, role: null, id: null });
-    localStorage.removeItem('hein_auth');
-    window.location.reload(); // Refresh to ensure clean state
+  // Email/Password Sign-In via Firebase
+  const handleEmailLogin = async (e) => {
+    e.preventDefault();
+    setIsLoggingIn(true);
+    setError('');
+    try {
+      const result = await signInWithEmailAndPassword(auth, email, password);
+      await handleFirebaseUser(result.user);
+    } catch (err) {
+      const msgs = {
+        'auth/user-not-found': 'No account found with this email.',
+        'auth/wrong-password': 'Incorrect password.',
+        'auth/invalid-credential': 'Invalid email or password.',
+        'auth/too-many-requests': 'Too many attempts. Try again later.',
+      };
+      setError(msgs[err.code] || 'Login failed. Please check your credentials.');
+    } finally {
+      setIsLoggingIn(false);
+    }
   };
 
-  if (!auth.isAuthenticated) {
+  // Logout
+  const handleLogout = async () => {
+    await signOut(auth).catch(() => {});
+    setAuthState({ isAuthenticated: false, user: null, role: null, id: null });
+    localStorage.removeItem('hein_auth');
+  };
+
+  // Loading screen while checking auth state
+  if (checkingAuth) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#050505] p-4 font-sans selection:bg-brand-gold selection:text-black">
-        {/* Force dark mode locally for login */}
-        <div className="w-full max-w-sm rounded-[2rem] border border-[#222] bg-[#111] p-10 md:p-14 text-center shadow-[0_0_80px_rgba(0,0,0,0.8)] animate-in fade-in zoom-in-95 duration-700">
-          <div className="text-center mb-12">
-            <h1 className="font-serif text-5xl font-bold tracking-[0.2em] text-brand-gold mb-3 drop-shadow-sm">HEIN</h1>
-            <p className="text-[10px] uppercase tracking-[0.3em] font-bold text-gray-600">Luxury ERP Engine v2.0</p>
+      <div className="flex min-h-screen items-center justify-center bg-[#050505]">
+        <div className="text-center">
+          <h1 className="font-serif text-4xl font-bold tracking-[0.3em] text-brand-gold animate-pulse">HEIN</h1>
+          <p className="text-[9px] uppercase tracking-[0.4em] text-gray-700 mt-3 font-bold">Initializing...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Login Page
+  if (!authState.isAuthenticated) {
+    return (
+      <div className="flex min-h-screen bg-[#050505] font-sans selection:bg-brand-gold selection:text-black">
+        {/* Left decorative panel — hidden on mobile */}
+        <div className="hidden lg:flex flex-col justify-between flex-1 bg-gradient-to-br from-[#0a0a0a] via-[#0f0f0f] to-[#050505] border-r border-[#1a1a1a] p-16 relative overflow-hidden">
+          <div className="absolute inset-0 opacity-[0.03]" style={{backgroundImage: 'radial-gradient(circle at 20% 50%, #D4AF37 0%, transparent 60%), radial-gradient(circle at 80% 20%, #D4AF37 0%, transparent 40%)'}} />
+          <div className="relative z-10">
+            <h1 className="font-serif text-6xl font-bold tracking-[0.3em] text-brand-gold">HEIN</h1>
+            <p className="text-[10px] uppercase tracking-[0.4em] text-gray-600 mt-2 font-bold">Elevating Men's Fashion</p>
           </div>
-          
-          <form onSubmit={handleLogin} className="space-y-8">
-            <div className="text-left space-y-2">
-              <label className="block text-[10px] uppercase tracking-[0.2em] text-brand-gold font-bold ml-1 font-sans">Username</label>
-              <input 
-                type="text" 
-                required 
-                className="w-full bg-[#0a0a0a] border border-[#333] text-white text-base py-4 px-6 rounded-2xl focus:border-brand-gold outline-none transition-all placeholder:text-gray-800 font-sans" 
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="Enter Username"
-              />
+          <div className="relative z-10 space-y-8">
+            {[
+              { title: 'Real-Time Inventory', desc: 'Track every size, every unit in real-time' },
+              { title: 'Point of Sale', desc: 'Process transactions with multi-size precision' },
+              { title: 'Financial Intelligence', desc: 'P&L, expenses and revenue analytics' },
+              { title: 'VIP Network', desc: 'Manage your elite clientele database' },
+            ].map((f, i) => (
+              <div key={i} className="flex items-start gap-4">
+                <div className="w-1 h-8 bg-brand-gold/40 rounded-full mt-0.5 shrink-0" />
+                <div>
+                  <p className="text-white font-bold text-sm">{f.title}</p>
+                  <p className="text-gray-600 text-xs mt-0.5">{f.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+          <p className="relative z-10 text-[9px] uppercase tracking-[0.3em] text-gray-800 font-bold">© {new Date().getFullYear()} HEIN Corp · All Rights Reserved</p>
+        </div>
+
+        {/* Right login panel */}
+        <div className="flex flex-1 items-center justify-center p-6 lg:p-16">
+          <div className="w-full max-w-md space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+            {/* Mobile logo */}
+            <div className="lg:hidden text-center mb-10">
+              <h1 className="font-serif text-5xl font-bold tracking-[0.3em] text-brand-gold">HEIN</h1>
+              <p className="text-[9px] uppercase tracking-[0.3em] text-gray-600 mt-2 font-bold">Luxury ERP Engine</p>
             </div>
-            <div className="text-left space-y-2">
-              <label className="block text-[10px] uppercase tracking-[0.2em] text-gray-500 font-bold ml-1 font-sans">Password</label>
-              <input 
-                type="password" 
-                required 
-                className="w-full bg-[#0a0a0a] border border-[#333] text-white text-base py-4 px-6 rounded-2xl focus:border-brand-gold outline-none transition-all placeholder:text-gray-800 font-sans" 
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-              />
-              {error && <p className="text-red-500 font-bold text-[10px] uppercase tracking-[0.2em] mt-4 bg-red-900/10 p-3 rounded-xl border border-red-500/20 text-center animate-shake">{error}</p>}
+
+            <div>
+              <h2 className="font-serif text-3xl text-white font-bold">Welcome back</h2>
+              <p className="text-gray-500 text-sm mt-1">Sign in to access the HEIN system</p>
             </div>
-            
-            <button disabled={isLoggingIn} type="submit" className="btn-gold w-full mt-6 py-4 text-sm font-bold tracking-[0.3em] disabled:opacity-50 shadow-2xl shadow-brand-gold/10 hover:shadow-brand-gold/20 font-sans">
-              {isLoggingIn ? 'DECRYPTING...' : 'ACCESS SYSTEM'}
+
+            {/* Google Sign-In Button */}
+            <button
+              onClick={handleGoogleLogin}
+              disabled={isLoggingIn}
+              className="w-full flex items-center justify-center gap-3 bg-white hover:bg-gray-50 text-gray-900 font-bold py-4 px-6 rounded-2xl transition-all duration-200 hover:shadow-[0_0_30px_rgba(255,255,255,0.1)] disabled:opacity-50 disabled:cursor-not-allowed border border-gray-200"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24">
+                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+              </svg>
+              {isLoggingIn ? 'Signing in...' : 'Continue with Google'}
             </button>
-          </form>
-          
-          <div className="mt-10 pt-6 border-t border-[#222]">
-             <p className="text-[9px] uppercase tracking-[0.3em] text-gray-700 font-bold font-sans">Authorized Personnel Only · 2026 HEIN Corp</p>
+
+            {/* Divider */}
+            <div className="flex items-center gap-4">
+              <div className="flex-1 h-px bg-[#1f1f1f]" />
+              <span className="text-[10px] uppercase tracking-[0.2em] text-gray-700 font-bold">or</span>
+              <div className="flex-1 h-px bg-[#1f1f1f]" />
+            </div>
+
+            {/* Email/Password Form */}
+            <form onSubmit={handleEmailLogin} className="space-y-5">
+              <div className="space-y-2">
+                <label className="block text-[10px] uppercase tracking-[0.2em] text-gray-500 font-bold">Email Address</label>
+                <input
+                  type="email" required
+                  className="w-full bg-[#0d0d0d] border border-[#222] text-white text-sm py-4 px-5 rounded-2xl focus:border-brand-gold/60 focus:ring-1 focus:ring-brand-gold/20 outline-none transition-all placeholder:text-gray-800"
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  placeholder="you@example.com"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="block text-[10px] uppercase tracking-[0.2em] text-gray-500 font-bold">Password</label>
+                <input
+                  type="password" required
+                  className="w-full bg-[#0d0d0d] border border-[#222] text-white text-sm py-4 px-5 rounded-2xl focus:border-brand-gold/60 focus:ring-1 focus:ring-brand-gold/20 outline-none transition-all placeholder:text-gray-800"
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  placeholder="••••••••••"
+                />
+              </div>
+
+              {error && (
+                <div className="bg-red-950/40 border border-red-500/20 rounded-xl p-4 flex items-start gap-3">
+                  <span className="text-red-400 text-lg shrink-0">⚠</span>
+                  <p className="text-red-400 text-xs font-bold leading-relaxed">{error}</p>
+                </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={isLoggingIn}
+                className="btn-gold w-full py-4 text-sm font-black tracking-[0.25em] disabled:opacity-50 shadow-[0_0_30px_rgba(212,175,55,0.15)] hover:shadow-[0_0_40px_rgba(212,175,55,0.25)] transition-all"
+              >
+                {isLoggingIn ? 'AUTHENTICATING...' : 'ACCESS SYSTEM'}
+              </button>
+            </form>
+
+            <p className="text-center text-[9px] uppercase tracking-[0.3em] text-gray-800 font-bold">
+              Authorized Personnel Only · HEIN Corp
+            </p>
           </div>
         </div>
       </div>
     );
   }
 
-  return <Dashboard user={auth.user} role={auth.role} userId={auth.id} onLogout={handleLogout} />;
+  return <Dashboard user={authState.user} role={authState.role} userId={authState.id} photoURL={authState.photoURL} onLogout={handleLogout} />;
 }
 
 export default App;
