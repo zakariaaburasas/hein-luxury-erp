@@ -8,7 +8,7 @@ function App() {
   const [authState, setAuthState] = useState({ 
     isAuthenticated: false, user: null, role: null, id: null, photoURL: null 
   });
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoggingIn, setIsLoggingIn] = useState(false);
@@ -82,22 +82,33 @@ function App() {
     }
   };
 
-  // Email/Password Sign-In via Firebase
-  const handleEmailLogin = async (e) => {
+  // Standard Username/Password Sign-In (Your specific DB users)
+  const handleStandardLogin = async (e) => {
     e.preventDefault();
     setIsLoggingIn(true);
     setError('');
     try {
-      const result = await signInWithEmailAndPassword(auth, email, password);
-      await handleFirebaseUser(result.user);
+      const response = await fetch(`${API_URL}/api/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+      const data = await response.json();
+      if (data.success) {
+        const session = {
+          isAuthenticated: true,
+          user: data.user.name,
+          role: data.user.role,
+          id: data.user.id,
+          photoURL: data.user.avatar || null
+        };
+        setAuthState(session);
+        localStorage.setItem('hein_auth', JSON.stringify(session));
+      } else {
+        setError(data.message || 'Invalid username or password.');
+      }
     } catch (err) {
-      const msgs = {
-        'auth/user-not-found': 'No account found with this email.',
-        'auth/wrong-password': 'Incorrect password.',
-        'auth/invalid-credential': 'Invalid email or password.',
-        'auth/too-many-requests': 'Too many attempts. Try again later.',
-      };
-      setError(msgs[err.code] || 'Login failed. Please check your credentials.');
+      setError('Connection to server failed.');
     } finally {
       setIsLoggingIn(false);
     }
@@ -188,16 +199,16 @@ function App() {
               <div className="flex-1 h-px bg-[#1f1f1f]" />
             </div>
 
-            {/* Email/Password Form */}
-            <form onSubmit={handleEmailLogin} className="space-y-5">
+            {/* Standard Login Form */}
+            <form onSubmit={handleStandardLogin} className="space-y-5">
               <div className="space-y-2">
-                <label className="block text-[10px] uppercase tracking-[0.2em] text-gray-500 font-bold">Email Address</label>
+                <label className="block text-[10px] uppercase tracking-[0.2em] text-gray-500 font-bold">System Username</label>
                 <input
-                  type="email" required
+                  type="text" required
                   className="w-full bg-[#0d0d0d] border border-[#222] text-white text-sm py-4 px-5 rounded-2xl focus:border-brand-gold/60 focus:ring-1 focus:ring-brand-gold/20 outline-none transition-all placeholder:text-gray-800"
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
-                  placeholder="you@example.com"
+                  value={username}
+                  onChange={e => setUsername(e.target.value)}
+                  placeholder="e.g. Zakaria"
                 />
               </div>
               <div className="space-y-2">

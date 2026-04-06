@@ -62,15 +62,21 @@ router.post('/firebase-login', async (req, res) => {
       // Brand new user — check if there is ANY admin yet
       const adminExists = await User.findOne({ role: 'admin' });
 
-      // First person ever to sign in becomes Admin automatically
-      const role = adminExists ? 'staff' : 'admin';
+      if (adminExists) {
+        // Prevent random people from joining the system
+        return res.status(403).json({ 
+          success: false, 
+          message: 'Access Denied. Your email is not registered in the system. Contact the Admin.' 
+        });
+      }
 
+      // First person ever to sign in becomes Admin automatically
       user = new User({
         name: name || email.split('@')[0],
         username: email.split('@')[0],
         email,
         firebaseUid: uid,
-        role,
+        role: 'admin',
         avatar: picture || '',
         password: '' // No password needed for Firebase users
       });
