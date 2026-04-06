@@ -51,12 +51,18 @@ router.post('/firebase-login', async (req, res) => {
   try {
     // Verify the Firebase ID token
     const decoded = await admin.auth().verifyIdToken(idToken);
-    const { uid, email, name, picture } = decoded;
+    const { uid, email: rawEmail, name, picture } = decoded;
+    const email = rawEmail ? rawEmail.toLowerCase().trim() : null;
 
     if (!email) return res.status(400).json({ message: 'No email associated with this account.' });
 
-    // Find or create user in MongoDB
-    let user = await User.findOne({ $or: [{ firebaseUid: uid }, { email }] });
+    // Find or create user in MongoDB (Case-insensitive email search)
+    let user = await User.findOne({ 
+      $or: [
+        { firebaseUid: uid }, 
+        { email: { $regex: new RegExp("^" + email + "$", "i") } }
+      ] 
+    });
 
     if (!user) {
       // Brand new user — check if there is ANY admin yet

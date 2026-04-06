@@ -358,7 +358,7 @@ export default function Dashboard({ user: initialUser, role, userId, onLogout })
                  activeTab === 'report' ? 'P&L Reports' :
                  activeTab === 'expenses' ? 'Accounting' : 
                  activeTab === 'production' ? 'Purchases' : 
-                 activeTab === 'team' ? 'Command Center' : 
+                 activeTab === 'team' ? 'Executive HQ' : 
                  activeTab === 'profile' ? 'Profile Signature' : activeTab}
               </h2>
               <p className="text-[10px] text-brand-gold tracking-[0.15em] mt-0.5 uppercase">
