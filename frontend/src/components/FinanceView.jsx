@@ -115,7 +115,7 @@ export default function FinanceView() {
             </div>
             <div className="rounded-xl border border-brand-border bg-bg-card px-4 py-3 flex justify-between items-center">
                 <span className="text-[0.65rem] text-txt-muted uppercase tracking-widest">Efficiency</span>
-                <span className="font-serif text-xl text-txt-main">94.2%</span>
+                <span className="font-serif text-xl text-txt-main">{grossMargin}%</span>
             </div>
         </div>
       </div>
@@ -141,7 +141,7 @@ export default function FinanceView() {
                         <tr><td colSpan="4" className="px-6 py-10 text-center text-txt-muted font-mono text-xs">Awaiting data reconciliation...</td></tr>
                     ) : monthlyData.map((d, i) => (
                         <tr key={i} className="hover:bg-brand-gold/5 transition-colors">
-                            <td className="px-6 py-4 font-serif text-base text-txt-main font-bold">{d.month} 2026</td>
+                            <td className="px-6 py-4 font-serif text-base text-txt-main font-bold">{d.month}</td>
                             <td className="px-6 py-4 text-xs font-mono text-txt-muted">{d.orders} OPERATIONS</td>
                             <td className="px-6 py-4 font-medium text-txt-main opacity-80">${d.revenue.toLocaleString()}</td>
                             <td className="px-6 py-4 text-right">

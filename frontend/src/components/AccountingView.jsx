@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
-  AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip,
+  BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid,
   ResponsiveContainer, PieChart, Pie, Cell, Legend
 } from 'recharts';
 import { TrendingUp, TrendingDown, Minus, Plus, BookOpen, FileText, BarChart2, Download } from 'lucide-react';
@@ -393,9 +393,9 @@ function PLTab({ expenses, sales }) {
           <div className="h-[220px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={monthlyData} barGap={4}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border-color)" opacity={0.5} />
-                <XAxis dataKey="month" tick={{ fill: 'var(--text-muted)', fontSize: 10, fontWeight: 'bold' }} axisLine={false} tickLine={false} dy={5} />
-                <YAxis tick={{ fill: 'var(--text-muted)', fontSize: 10, fontWeight: 'bold' }} axisLine={false} tickLine={false} tickFormatter={v => `$${v}`} />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#374151" opacity={0.4} />
+                <XAxis dataKey="month" tick={{ fill: '#9ca3af', fontSize: 10, fontWeight: 'bold' }} axisLine={false} tickLine={false} dy={5} />
+                <YAxis tick={{ fill: '#9ca3af', fontSize: 10, fontWeight: 'bold' }} axisLine={false} tickLine={false} tickFormatter={v => v >= 1000 ? `$${(v/1000).toFixed(1)}k` : `$${v}`} />
                 <Tooltip
                   contentStyle={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: 12, color: 'var(--text-main)' }}
                   itemStyle={{ fontSize: 11, fontWeight: 'bold' }}
