@@ -122,6 +122,9 @@ function App() {
 
   // Logout
   const handleLogout = async () => {
+    if (authState.id) {
+       await fetch(`${API_URL}/api/users/offline/${authState.id}`, { method: 'PUT' }).catch(() => {});
+    }
     await signOut(auth).catch(() => {});
     setAuthState({ isAuthenticated: false, user: null, role: null, id: null });
     sessionStorage.removeItem('hein_auth');

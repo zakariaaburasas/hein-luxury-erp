@@ -62,12 +62,23 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
-// Update only the last seen timestamp (Ping)
+// Update last seen (Heartbeat)
 router.put('/ping/:id', async (req, res) => {
   try {
     const user = await User.findByIdAndUpdate(req.params.id, { lastSeen: new Date() }, { new: true });
     if (!user) return res.status(404).json({ message: 'User not found' });
     res.json({ success: true, lastSeen: user.lastSeen });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Force 'Offline' status (Manual Logout)
+router.put('/offline/:id', async (req, res) => {
+  try {
+    const user = await User.findByIdAndUpdate(req.params.id, { lastSeen: new Date(0) }, { new: true });
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    res.json({ success: true, offline: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
