@@ -28,7 +28,14 @@ router.post('/setup', async (req, res) => {
 router.post('/login', async (req, res) => {
   const { username, password } = req.body;
   try {
-    const user = await User.findOne({ username });
+    // Find by username OR email
+    const user = await User.findOne({ 
+      $or: [
+        { username: username }, 
+        { email: username }
+      ] 
+    });
+    
     if (!user || user.password !== password) {
       return res.status(401).json({ message: 'Invalid credentials. Access Denied.' });
     }
