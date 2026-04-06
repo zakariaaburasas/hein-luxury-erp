@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Dashboard from './components/Dashboard';
 import API_URL from './api/config';
 import { auth, googleProvider } from './firebase';
-import { signInWithPopup, signInWithEmailAndPassword, onAuthStateChanged, signOut } from 'firebase/auth';
+import { signInWithPopup, signInWithEmailAndPassword, onAuthStateChanged, signOut, setPersistence, browserSessionPersistence } from 'firebase/auth';
 
 function App() {
   const [authState, setAuthState] = useState(() => {
@@ -17,7 +17,12 @@ function App() {
 
   // On mount, check if user was previously signed in via Firebase
   useEffect(() => {
-    fetch(`${API_URL}/api/auth/setup`, { method: 'POST' }).catch(() => {});
+    // Force Session-Only persistence (Clears on browser/tab close)
+    setPersistence(auth, browserSessionPersistence)
+      .then(() => {
+        fetch(`${API_URL}/api/auth/setup`, { method: 'POST' }).catch(() => {});
+      })
+      .catch((err) => console.error("Persistence Error:", err));
 
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
