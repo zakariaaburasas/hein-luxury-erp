@@ -66,6 +66,7 @@ export default function Dashboard({ user: initialUser, role, userId, onLogout })
   const [recentSales, setRecentSales] = useState([]);
   const [totalCustomers, setTotalCustomers] = useState(0);
   const [totalProducts, setTotalProducts] = useState(0);
+  const [totalStockUnits, setTotalStockUnits] = useState(0);
   const [activeProduction, setActiveProduction] = useState(0);
   const [loading, setLoading] = useState(true);
 
@@ -130,6 +131,7 @@ export default function Dashboard({ user: initialUser, role, userId, onLogout })
         setRecentSales(payload.recentSales || []);
         setTotalCustomers(payload.totalCustomers || 0);
         setTotalProducts(payload.totalProducts || 0);
+        setTotalStockUnits(payload.totalStockUnits || 0);
         setActiveProduction(payload.activeProduction || 0);
       }
     } catch (e) {
@@ -228,6 +230,15 @@ export default function Dashboard({ user: initialUser, role, userId, onLogout })
               <div>
                 <p className="text-[10px] text-txt-muted uppercase tracking-widest leading-tight font-bold">SKUs Catalogued</p>
                 <p className="font-serif text-2xl font-bold text-txt-main">{totalProducts}</p>
+              </div>
+            </div>
+            <div className="rounded-[1.25rem] bg-bg-card border border-brand-border p-5 flex items-center gap-4 transition-all hover:border-brand-gold/20 shadow-sm">
+              <div className="w-12 h-12 rounded-xl bg-bg-main flex items-center justify-center shrink-0 border border-brand-border/50">
+                <BarChart2 size={20} className="text-brand-gold" />
+              </div>
+              <div>
+                <p className="text-[10px] text-txt-muted uppercase tracking-widest leading-tight font-bold">Total Stock Units</p>
+                <p className="font-serif text-2xl font-bold text-txt-main">{totalStockUnits.toLocaleString()}</p>
               </div>
             </div>
             <div className="rounded-[1.25rem] bg-bg-card border border-brand-border p-5 flex items-center gap-4 transition-all hover:border-brand-gold/20 shadow-sm">
