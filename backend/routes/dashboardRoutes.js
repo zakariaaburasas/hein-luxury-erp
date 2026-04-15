@@ -67,8 +67,9 @@ router.get('/summary', async (req, res) => {
        });
     }
 
-    // 3. Compute Stock Alerts
+    // 3. Compute Stock Alerts and Total Stock
     const stockAlerts = products.filter(p => p.stockLevel <= p.min_stock_level);
+    const totalStockUnits = products.reduce((sum, p) => sum + (p.stockLevel || 0), 0);
     
     // 4. Compute Active Production
     const activeProductionCount = productions.filter(p => p.status !== 'Delivered').length;
@@ -86,6 +87,7 @@ router.get('/summary', async (req, res) => {
       recentSales,
       totalCustomers: customersCount,
       totalProducts: products.length,
+      totalStockUnits,
       activeProduction: activeProductionCount
     });
 
