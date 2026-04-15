@@ -127,7 +127,7 @@ export default function InventoryView({ searchQuery, userId }) {
         <div>
           <h2 className="font-serif text-2xl tracking-wide text-txt-main">Inventory Master</h2>
           <p className="mt-1 text-sm text-txt-muted">
-            {products.length} SKU{products.length !== 1 ? 's' : ''} registered
+            {products.length} SKU{products.length !== 1 ? 's' : ''} registered · {products.reduce((sum, p) => sum + (p.stockLevel || 0), 0).toLocaleString()} units in stock
             {lowStockCount > 0 && (
               <span className="ml-3 text-amber-500 font-bold dark:text-amber-400">
                 · <AlertTriangle size={12} className="inline mb-0.5" /> {lowStockCount} low stock alert{lowStockCount > 1 ? 's' : ''}
